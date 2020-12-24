@@ -1,0 +1,104 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "4c9eb83f178fc11939d06c1023562e94f413d0f805a84f54890eb49b1278d980"
+        },
+        "pipfile-spec": 6,
+        "requires": {},
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "aenum": {
+            "hashes": [
+                "sha256:260225470b49429f5893a195a8b99c73a8d182be42bf90c37c93e7b20e44eaae",
+                "sha256:aaebe735508d9cbc72cd6adfb59660a5e676dfbeb6fb24fb090041e7ddb8d3b3",
+                "sha256:f9d20f7302ce3dc3639b3f75c3b3e146f3b22409a6b4513c1f0bd6dbdfcbd8c1"
+            ],
+            "version": "==2.2.6"
+        },
+        "argparse-addons": {
+            "hashes": [
+                "sha256:3823071e9d66bc7b521ade37d22faf03ad08c91adf210cb21cd523a9074a6b63"
+            ],
+            "version": "==0.6.0"
+        },
+        "bitstruct": {
+            "hashes": [
+                "sha256:4e7b8769c0f09fee403d0a5f637f8b575b191a79a92e140811aa109ce7461f0c"
+            ],
+            "version": "==8.11.1"
+        },
+        "cantools": {
+            "hashes": [
+                "sha256:6c46bcf776a3c772c9f3c1bb1688a7489a5ee90da2c1bdd01be6af0744496bd1",
+                "sha256:817a2d799371ae6edfc720a6e6353213195896a466752e9c94fab43c4aa64d70"
+            ],
+            "index": "pypi",
+            "version": "==36.0.0"
+        },
+        "clang": {
+            "hashes": [
+                "sha256:de1b1e7defe3b499e82cc9851cdc968790575c510f62c2a000c724e1943ca8bb",
+                "sha256:f838e6475b1fe5c91efb97e80ae19420c39483fd5aa7ef10f03ffb51edc6f8c5"
+            ],
+            "index": "pypi",
+            "version": "==11.0"
+        },
+        "cogapp": {
+            "hashes": [
+                "sha256:5e5da2bcfc4e4750c66cecb80ea4eaed1ef4fddd3787c989d4f5bfffb1152d6a",
+                "sha256:61e9a66bbf1e6755df47330a441479c5be363bab30ca58c5598d9b641cdc9115"
+            ],
+            "index": "pypi",
+            "version": "==3.0.0"
+        },
+        "diskcache": {
+            "hashes": [
+                "sha256:bc7928df986dbc8a8d6e34c33b0da89d668cfa65e7fcc91298a6959a35076993",
+                "sha256:d8d608363f1b0ecbc216b5b34b6c8e269a5d4cce338269f3b1c1f8f11816f71d"
+            ],
+            "markers": "python_version >= '3'",
+            "version": "==5.1.0"
+        },
+        "python-can": {
+            "hashes": [
+                "sha256:2d3c223b7adc4dd46ce258d4a33b7e0dbb6c339e002faa40ee4a69d5fdce9449"
+            ],
+            "markers": "python_version >= '2.7'",
+            "version": "==3.3.4"
+        },
+        "textparser": {
+            "hashes": [
+                "sha256:f009d0f6f78aa7c1e648dca4e3961f6d67495f7f520f1a705245ffad33f4b470",
+                "sha256:f606d54cc0b30135082df2de3558915d2a78ff347efb043801bfbe173fb96e73"
+            ],
+            "version": "==0.23.0"
+        },
+        "windows-curses": {
+            "hashes": [
+                "sha256:1452d771ec6f9b3fef037da2b169196a9a12be4e86a6c27dd579adac70c42028",
+                "sha256:267544e4f60c09af6505e50a69d7f01d7f8a281cf4bd4fc7efc3b32b9a4ef64e",
+                "sha256:389228a3df556102e72450f599283094168aa82eee189f501ad9f131a0fc92e1",
+                "sha256:84336fe470fa07288daec5c684dec74c0766fec6b3511ccedb4c494804acfbb7",
+                "sha256:9aa6ff60be76f5de696dc6dbf7897e3b1e6abcf4c0f741e9a0ee22cd6ef382f8",
+                "sha256:c4a8ce00e82635f06648cc40d99f470be4e3ffeb84f9f7ae9d6a4f68ec6361e7",
+                "sha256:c5cd032bc7d0f03224ab55c925059d98e81795098d59bbd10f7d05c7ea9677ce",
+                "sha256:fc0be372fe6da3c39d7093154ce029115a927bf287f34b4c615e2b3f8c23dfaa"
+            ],
+            "version": "==2.2.0"
+        },
+        "wrapt": {
+            "hashes": [
+                "sha256:b62ffa81fb85f4332a4f609cab4ac40709470da05643a082ec1eb88e6d9b97d7"
+            ],
+            "version": "==1.12.1"
+        }
+    },
+    "develop": {}
+}

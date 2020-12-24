@@ -1,0 +1,383 @@
+#include "DatabaseLayer.h"
+#include "stdbool.h"
+#include "FreeRTOS.h"
+#include "task.h"
+/*[[[cog
+import cog
+if settings['CallbackLib'] is not None:
+    cog.outl("""#include "%s.h" """ % (settings['CallbackLib']))
+]]]*/
+//[[[end]]]
+
+/*[[[cog
+import cog
+if settings['FreeRTOSInteractionLayer']:
+    cog.out("""
+/*
+ * Interaction Layer: Tasks to send the cyclic messages
+ */
+        """);
+
+    for time, ILframes in InteractionLayer.items():
+        cog.out("""
+static void vTaskInteractionLayer_%s_%sms( void *pvParameters ){
+    const TickType_t xTimeIncrement = pdMS_TO_TICKS(%s);
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    for(;;){
+""" %(prefix, time, time));
+
+        for frame in ILframes:
+            cog.out("""
+        %s_%s.send();""" %(prefix, frame))
+    
+        cog.out("""
+
+        vTaskDelayUntil(&xLastWakeTime, xTimeIncrement);
+    }
+}
+    """);
+
+]]]*/
+//[[[end]]]
+
+
+/*[[[cog
+import cog
+if settings['FreeRTOSInteractionLayer']:
+    cog.out("""
+/*
+ * Interaction Layer: Start function to initialize the cyclic tasks
+ */
+        """);
+
+    cog.out("""
+void %s_InteractionLayerInit(){
+    """ % prefix)
+
+    for time, ILframes in InteractionLayer.items():
+        cog.out("""
+
+    xTaskCreate(
+        vTaskInteractionLayer_%s_%sms,      /* Function that implements the task. */
+        "InteractionLayer_%s_%sms",         /* Text name for the task. */
+        100,                                /* Stack size in words, not bytes. */
+        NULL,                               /* Parameter passed into the task. */
+        tskIDLE_PRIORITY,                   /* Priority at which the task is created. */
+        NULL                                /* Used to pass out the created task's handle. */
+    );      
+    """ % (prefix, time, prefix, time))
+
+    cog.out("""}""")
+]]]*/
+//[[[end]]]
+
+
+
+/*
+ * CAN Callbacks: Receive Callback function. This function should be called when a new message arrives. The function automatically identifies the message and unpacks it into the signals
+ */
+/*[[[cog
+import cog
+if settings['CallbackLib'] is not None:
+    cog.out(
+"""
+void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
+    if((ID > 0x1FFFFFFF) & is_extended){
+        //invalid extended identifier
+    }else if((ID > 0x7FF) & !is_extended){
+        //invalid standard identifier
+    }
+""");
+
+for framename, frame in frames.items():
+    if frame['RX']:
+        cog.out(
+"""
+    else if((ID==%s_%s.ID) & (is_extended==%s_%s.is_extended)){
+        %s_%s.raw = data;
+        %s_%s.receive();
+    }
+"""%(prefix, framename, prefix, framename, prefix, framename, prefix, framename, 
+    ));
+cog.out("""
+    else{
+        //ID is not received by this ECU
+    }
+}
+""");
+]]]*/
+//[[[end]]]
+
+
+/*
+ * Signal getValue and setValue method prototypes
+ */
+
+/*[[[cog
+import cog
+for signame, sig in signals.items():
+    cog.outl(
+"""static %s %ssig_%s_getValue();"""
+    % (
+        sig['getsetValue_type'],prefix,signame
+    ));
+    if sig['TX']:
+        cog.outl(
+"""static bool %ssig_%s_setValue(%s);"""
+        % (
+            prefix, signame, sig['getsetValue_type']
+        ));
+]]]*/
+//[[[end]]]
+
+
+/*
+ * Signals: Signal struct definitions
+ */
+
+/*[[[cog
+import cog
+for signame, sig in signals.items():
+    cog.out(
+"""
+struct %ssig_%s_t %ssig_%s = {
+    .length = %s,
+    .byte_order = %s,
+    .value_type = T%s,
+    .unit = "%s",
+    .initial_value = %s,
+    .factor = %s,
+    .offset = %s,
+    .min = %s,
+    .max = %s,
+    .raw = %s,
+    .getValue = %ssig_%s_getValue"""
+    % (
+        prefix, signame, prefix, signame,
+        sig['length'],
+        sig['byte_order'],
+        sig['value_type'],
+        sig['unit'],
+        sig['initial_value'],
+        sig['factor'],
+        sig['offset'],
+        sig['min'],
+        sig['max'],
+        sig['initial_value'],
+        prefix,signame,
+    ));
+
+    if sig["TX"]:
+        cog.out(
+    """,
+    .setValue = %ssig_%s_setValue"""
+        % (
+            prefix,signame
+        ));
+
+    cog.out("""
+};
+    """)
+
+]]]*/
+//[[[end]]]
+
+/*
+ * Signals: Signal getValue and setValue private methods
+ */
+
+/*[[[cog
+import cog
+for signame, sig in signals.items():
+    cog.out(
+"""static %s %ssig_%s_getValue(){
+"""%(sig['getsetValue_type'],prefix,signame));
+
+    if settings['getsetValueOptimizeIdentity'] & (sig['factor'] == 1) & (sig['offset'] == 0):
+        cog.out(
+"""     return %ssig_%s.raw;
+}
+"""%(prefix,signame,));
+
+    else:
+        cog.out(
+"""     return %ssig_%s.raw * %ssig_%s.factor + %ssig_%s.offset;
+}
+"""% (prefix,signame,prefix,signame,prefix,signame));
+
+    if sig['TX']:
+        cog.out(
+"""static bool %ssig_%s_setValue(%s val){
+    bool saturation = false;"""%(prefix, signame, sig['getsetValue_type']));
+
+        if settings['getsetValueOptimizeIdentity'] & (sig['factor'] == 1) & (sig['offset'] == 0):
+            cog.out("""
+    %ssig_%s.raw =  val;""" % (prefix, signame));
+
+        else:
+            cog.out("""
+    if(val > %ssig_%s.max){
+        saturation = true;
+        val = %ssig_%s.max;
+    }else if(val < %ssig_%s.min){
+        saturation = true;
+        val = %ssig_%s.min;
+    }
+
+    %ssig_%s.raw =  (val-%ssig_%s.offset)/%ssig_%s.factor;"""
+        % (
+            prefix, signame,
+            prefix, signame,
+            prefix, signame,
+            prefix, signame,
+            prefix, signame, prefix, signame, prefix, signame
+        ));
+        cog.out("""
+    return !saturation;
+}
+""");
+
+]]]*/
+//[[[end]]]
+
+/*
+ * Messages:  send and receive private methods
+ */
+
+/*[[[cog
+import cog
+for framename, frame in frames.items():
+    if frame['RX']:
+        cog.out(
+"""
+static void %s_%s_receive(){
+"""
+        % (
+            prefix, framename
+        ));
+        for signalname, signal in frame['signals'].items():
+            if signal['RX']==False and signal['TX']==False:
+                pass
+            else:
+                # signalraw = (rawmessage >> startbit) & mask
+                cog.out(
+"""
+     %ssig_%s.raw = (%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask;"""
+                % (
+                 prefix, signalname,
+                 prefix,framename,
+                 prefix,framename,prefix,signalname, 
+                 prefix,framename,prefix,signalname, 
+                ));
+        cog.out("""
+    
+};""")
+    if frame['TX']:
+        cog.out(
+"""
+static void %s_%s_send(){
+    %s_%s.raw = 0;
+"""
+        % (
+            prefix, framename,
+            prefix, framename
+        ));
+        for signalname, signal in frame['signals'].items():
+            if signal['RX']==False and signal['TX']==False:
+                pass
+            else:
+                # rawmessage |= ((uint64_t)signalraw&mask) << startbit
+                cog.out(
+"""
+    %s_%s.raw |= (uint64_t) ((uint64_t) %ssig_%s.raw & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
+                % (
+                 prefix, framename,
+                 prefix,signalname,
+                 prefix,framename,prefix,signalname, 
+                 prefix,framename,prefix,signalname, 
+                ));
+        cog.out("""
+
+    %s_SendCallback(
+        %s_%s.raw,
+        %s_%s.ID,
+        %s_%s.is_extended,
+        %s_%s.DLC
+    );
+};"""%(
+        prefix,
+        prefix,framename,
+        prefix,framename,
+        prefix,framename,
+        prefix,framename
+    ));
+
+
+]]]*/
+//[[[end]]]
+
+/*
+ * Messages: Message struct definitions
+ */
+
+
+/*[[[cog
+import cog
+for framename, frame in frames.items():
+    cog.out(
+"""
+// Comment: %s
+struct %s_%s_t %s_%s = {
+    .ID = %s, //dec: %s
+    .is_extended = %s,
+    .DLC = %s,
+    .raw = 0,"""
+    % (
+        frame['comment'],
+        prefix,framename,prefix,framename,
+        frame['ID'], frame['decID'],
+        frame['is_extended'],
+        frame['DLC']
+    ));
+
+    if frame['RX']:
+        cog.out("""
+    .receive = %s_%s_receive,"""
+        %(prefix, framename));
+
+    if frame['TX']:
+        cog.out("""
+    .send = %s_%s_send,"""
+        %(prefix, framename));
+
+    cog.out("""
+    .signals = {""");
+
+    for signalname, sig in frame['signals'].items():
+        if sig['RX']==False and sig['TX']==False:
+            cog.outl("""
+        //%s is not mapped to this ECU""" % (signalname))
+        else:
+            cog.out(
+        """
+        .%ssig_%s = {
+            .signal = &%ssig_%s,
+            .startbit = %s,
+            .mask = %s
+        },
+        """
+        % (
+            prefix,signalname,
+            prefix,signalname,
+            sig['startbit'],
+            sig['mask']
+        ));
+
+    cog.out("""
+    }
+};""")
+
+
+]]]*/
+//[[[end]]]
+
