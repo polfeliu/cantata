@@ -3,19 +3,14 @@
 This Python module extracts information from CANdb Databases and generates handy C code for integrating it into embedded projects. It is environment agnostic, it can be integrated into any MCU in theory. Example files to integrate it into STM32 using HAL from ST are included in this repo.
 The candb library is used for reading the dbc files [cantools](https://cantools.readthedocs.io/en/latest/) also accepts other formats but it hasn't been tested.
 ## Install
-The best way right to use this module is to clone the repository and install the pipenv inside it
+The best way right to use this module is to clone the repository and install the pipenv inside it.
 There you can edit the main and set the parameters as you need. 
-Someday I may create a .exe file with pyinstaller but wrapping all the settings into it is too much work right now
-```bash
-git clone https://github.com/polfeliu/CANDatabaseLayer
-cd CANDatabaseLayer
-pip install pipenv #if you don't have pipenv...
-pipenv install
-pipenv shell
-```
+Someday I may create a .exe file with pyinstaller but wrapping all the settings into it is too much work right now.
+
+
 
 ## Usage
-To generate the files you can either edit the last part of main.py (that generates the test) or create a new python file and import the module
+To generate the files you can either edit the last part of main.py (that generates the test) or create a new python file and import the module.
 ```python
     can = CANDatabaseLayer("CAN1") # create the object setting the prefix that will be used in all objects.
     Handy if you have several networks
@@ -37,7 +32,7 @@ To generate the files you can either edit the last part of main.py (that generat
 
 ### Mins and Max
 I've found that many databases tend to have the mins and maxs not calculated, because in the CANdb++ editor you have to click a button to update them according to the factors ,offsets and datatype. 
-To prevent mysterious errors when executing the program. When you process a signal it checks that the mins and max are correct. If a signal fails the program halts and prints an error.
+To prevent mysterious errors when executing the program I programmed a cool optional feature: When you process a signal it checks that the mins and max are correct. If a signal fails the program halts and prints an error.
 The function correctMinsMax() can be called before processing the node and it simply recalculates all the mins and maxs to the cache.
 To store the new mins and maxs you can call the function ``can.save("file")``
 
@@ -48,7 +43,10 @@ TODO
 TODO
 
 ## Structure
-The library generates DatabaseLayer.c and DatabaseLayer.h files with structures and functions for the following objects
+The library generates DatabaseLayer.c and DatabaseLayer.h files with structures and functions for the following objects.
+
+![alt text](https://github.com/polfeliu/CANDatabaseLayer/blob/main/diagram.png)
+
 ### Signals
 The signal structure contains basic information of the signal provided by the database (length, byte_order, unit, initial_value, factor, offset, min, max) and own elements of the library:
 * **value_type**: indicates in what structure the raw signal will be stored (this can be customized)
@@ -73,12 +71,10 @@ struct CAN1sig_SleepInd_t CAN1sig_SleepInd = {
 };
 ```
 #### getValue
-getValue method can be used like this:
 ```c
 sleep = CAN1sig_SleepInd.getValue()
 ```
 #### setValue
-setValue method can be used like this
 ```c
 sat = CAN1sig_SleepInd.setValue(34)
 ```
@@ -149,7 +145,7 @@ In the STM32CANCallbacks you can see and example on how this can be done for STM
 You should define a Transmit (*CAN1_SendCallback*) callback so that the messages are sent after being assembled. 
 This function will be called with the *data, id, is_extended, DLC* parameters by each send() command.
 
-An example of this is also included in the STM32CANCallbacks files
+An example of this is also included in the STM32CANCallbacks files.
 
 ## Interaction Layer
 Optionally, the Library can also generate FreeRTOS tasks for sending the messages. Right now the only option is cyclic, and it assumes that all messages have to be sent periodically according the Cyclic time set on the Database.
