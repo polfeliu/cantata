@@ -6,7 +6,13 @@ The candb library is used for reading the dbc files [cantools](https://cantools.
 The best way right to use this module is to clone the repository and install the pipenv inside it.
 There you can edit the main and set the parameters as you need. 
 Someday I may create a .exe file with pyinstaller but wrapping all the settings into it is too much work right now.
-
+```bash
+git clone https://github.com/polfeliu/CANDatabaseLayer
+cd CANDatabaseLayer
+pip install pipenv #if you don't have pipenv...
+pipenv install
+pipenv shell
+```
 
 
 ## Usage
