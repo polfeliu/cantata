@@ -86,7 +86,7 @@ class CANDatabaseLayer:
         StandardMask = StandardMask & 0x7FF;
 
         # mask Extended by 11 bits
-        ExtendedFilter = ExtendedFilter & 0x7FF;
+        ExtendedFilter = ExtendedFilter & 0x1FFFFFFF;
         ExtendedMask = ExtendedMask & 0x1FFFFFFF;
 
 

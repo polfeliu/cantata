@@ -13,12 +13,10 @@ void InitCAN1(CAN_HandleTypeDef *canh){
 
 	CAN_FilterTypeDef sFilterConfig;
 
-	sFilterConfig.FilterMaskIdHigh = ((int32_t) 0b1001 << 5) + ((int32_t) 2 >> 13);
-
-	sFilterConfig.FilterMaskIdHigh = ((int32_t)CAN1_StandardFilter << 5) + ((int32_t) CAN1_ExtendedFilter >> 13);
-	sFilterConfig.FilterIdLow = ((int32_t) CAN1_ExtendedFilter << 3);
-	sFilterConfig.FilterMaskIdHigh = ((int32_t) CAN1_StandardMask << 5) + ((int32_t) CAN1_ExtendedMask >> 13);
-	sFilterConfig.FilterMaskIdLow = ((int32_t) CAN1_ExtendedFilter << 3);
+	sFilterConfig.FilterIdHigh     = ((int32_t)CAN1_StandardFilter  << 5) + ((int32_t) CAN1_ExtendedFilter >> 13);
+	sFilterConfig.FilterMaskIdHigh = ((int32_t) CAN1_StandardMask   << 5) + ((int32_t) CAN1_ExtendedMask   >> 13);
+	sFilterConfig.FilterIdLow 	   = ((int32_t) CAN1_ExtendedFilter << 3);
+	sFilterConfig.FilterMaskIdLow  = ((int32_t) CAN1_ExtendedFilter << 3);
 
 	sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
 	sFilterConfig.FilterFIFOAssignment = 0;
