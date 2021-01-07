@@ -98,13 +98,13 @@ typedef enum {"""
 	for key,value in vt.items():
 		cog.out(
 """
-    %s_%s__%s=%s,"""
+    %ssig_%sVT_%s=%s,"""
         %(
             prefix,vtname,key,value
         ));
 	cog.out(
 """
-}%s_%s_t;
+}%ssig_%sVT_t;
 """
 	 %(
 	 	prefix,vtname
@@ -166,7 +166,7 @@ struct %ssig_%s_t{
     % (
         prefix,signame,
         sig['unit_len'],
-        sig['value_type'], 
+        sig['getsetValue_type'],
         sig['value_type'], 
         sig['getsetValue_type'],
     ));

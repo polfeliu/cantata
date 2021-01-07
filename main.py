@@ -25,10 +25,9 @@ class CANDatabaseLayer:
         "prefix": None, #all variables related to the library will have this prefix
         "setValueminmax": True, #SetValue function will check that it does not exceed the limits set by the properties
         "checkminmax": True, #checks if the min and max are correct according to the factors and offset. If they are not correct it will stop the program
-        "CallbackLib": "STM32CANCallbacks",
+        "CallbackLib": "STM32CANCallbacks", #name of the library that implementes the Callback functions for this bus
         "FreeRTOSInteractionLayer": True, #generates Interaction Layer with FreeRTOS according to the parameters set on the messages #TODO
         "calculateCANFilter": True, #Calculates a can Filter for the RX messages
-        "calculateCANFilterSTM32": True #Calculate Filter for the STM32 bxCAN filters with a FilterScale of 32 bits and a Filter Mode of CAN_FILTERMODE_IDMASK
     }
 
     def __init__(self, name):
@@ -282,7 +281,12 @@ class CANDatabaseLayer:
                 sig = self.processSignal(signal, frameTX, filterbynode=filterbynode)
 
                 sig["mask"] = "0b" + "1" * signal.length;
+
                 sig["startbit"] = signal.start
+
+                if signal.byte_order == "big_endian":
+                    sig["startbit"] = sig["startbit"] - signal.length + 1
+
                 fr["signals"][signal.name] = sig
 
                 if sig['RX']:
@@ -314,14 +318,20 @@ class CANDatabaseLayer:
             sig['unit_len'] = len(signal.unit)
             sig['unit'] = signal.unit;
 
-        if signal.initial is None:
-            sig['initial_value'] = 0;
-        else:
-            sig['initial_value'] = signal.initial;
+
+
 
         #TODO: optimize factor, offset, min and max types Right now they are all doubles
         sig['factor'] = signal.scale;
         sig['offset'] = signal.offset;
+
+
+        if signal.initial is None:
+            sig['initial_value'] = 0;
+            sig['initial_value_raw'] = 0;
+        else:
+            sig['initial_value'] = signal.initial;
+            sig['initial_value_raw'] = int((signal.initial - sig['offset'])/sig['factor']);
 
         if self.settings['checkminmax']:
             result,calcmin,calcmax = self.checkMinMax(signal)
@@ -383,8 +393,9 @@ calculated maximum: %s
                 name = re.sub('[^A-Za-z0-9_]+', '', name)
                 name = name.replace('__', '_')
                 vt[name] = num;
+
             self.valuetables[signal.name] = vt
-            sig['getsetValue_type'] = "%s_%s_t" % (self.settings["prefix"], signal.name)
+            sig['getsetValue_type'] = "%ssig_%sVT_t" % (self.settings["prefix"], signal.name)
 
 
         if filterbynode:
@@ -439,8 +450,8 @@ if __name__ == '__main__':
 
 
     can.correctMinsMax()
-    #can.process(node="Engine")
-    can.process()
+    can.process(node="Engine")
+    #can.process()
 
     can.genFiles(srcfile=src, hdrfile=hdr);
     shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')

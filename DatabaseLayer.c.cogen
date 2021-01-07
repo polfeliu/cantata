@@ -9,6 +9,23 @@ if settings['CallbackLib'] is not None:
 ]]]*/
 //[[[end]]]
 
+uint64_t reverseBits(uint64_t num, uint8_t NO_OF_BITS)
+{
+    uint64_t reverse_num = 0;
+    uint64_t temp = num;
+    uint64_t pos = (uint64_t)1 << (NO_OF_BITS - 1);
+    while(pos != 0)
+    {
+        if(temp & 1)
+            reverse_num |= pos;
+
+        temp = temp >> 1;
+        pos = pos >> 1;
+    }
+
+    return reverse_num;
+}
+
 /*[[[cog
 import cog
 if settings['FreeRTOSInteractionLayer']:
@@ -163,7 +180,7 @@ struct %ssig_%s_t %ssig_%s = {
         sig['offset'],
         sig['min'],
         sig['max'],
-        sig['initial_value'],
+        sig['initial_value_raw'],
         prefix,signame,
     ));
 
@@ -201,7 +218,7 @@ for signame, sig in signals.items():
 
     else:
         cog.out(
-"""     return %ssig_%s.raw * %ssig_%s.factor + %ssig_%s.offset;
+"""     return ((double) %ssig_%s.raw) * %ssig_%s.factor + %ssig_%s.offset;
 }
 """% (prefix,signame,prefix,signame,prefix,signame));
 
@@ -232,6 +249,7 @@ for signame, sig in signals.items():
             prefix, signame,
             prefix, signame, prefix, signame, prefix, signame
         ));
+    
         cog.out("""
     return !saturation;
 }
@@ -260,15 +278,28 @@ static void %s_%s_receive(){
                 pass
             else:
                 # signalraw = (rawmessage >> startbit) & mask
-                cog.out(
-"""
-     %ssig_%s.raw = (%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask;"""
-                % (
-                 prefix, signalname,
-                 prefix,framename,
-                 prefix,framename,prefix,signalname, 
-                 prefix,framename,prefix,signalname, 
-                ));
+                prereversal = """(%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask""" % (
+                    prefix,framename,
+                    prefix,framename,prefix,signalname, 
+                    prefix,framename,prefix,signalname, 
+                )
+                if signal["byte_order"] == "little_endian":
+                    cog.out(
+    """
+         %ssig_%s.raw = %s"""
+                    % (
+                     prefix,signalname, prereversal
+                    ));
+                else: #big endian
+                    cog.out(
+    """
+         %ssig_%s.raw = reverseBits(%s, %ssig_%s.length);"""
+                    % (
+                     prefix,signalname, prereversal, 
+                     prefix,signalname,
+                    ));
+
+
         cog.out("""
     
 };""")
@@ -287,12 +318,19 @@ static void %s_%s_send(){
                 pass
             else:
                 # rawmessage |= ((uint64_t)signalraw&mask) << startbit
+                if signal["byte_order"] == "little_endian":
+                    postreversal = "%ssig_%s.raw" % (prefix,signalname)
+                else:
+                    postreversal = "reverseBits(%ssig_%s.raw,  %ssig_%s.length)" % (
+                        prefix,signalname,
+                        prefix,signalname
+                        )
                 cog.out(
 """
-    %s_%s.raw |= (uint64_t) ((uint64_t) %ssig_%s.raw & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
+    %s_%s.raw |= (uint64_t) ((uint64_t) %s & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
                 % (
                  prefix, framename,
-                 prefix,signalname,
+                 postreversal,
                  prefix,framename,prefix,signalname, 
                  prefix,framename,prefix,signalname, 
                 ));
