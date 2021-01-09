@@ -264,6 +264,100 @@ for signame, sig in signals.items():
 
 /*[[[cog
 import cog
+def unpacksignal(framename, signalname, signal): 
+    
+    # signalraw = (rawmessage >> startbit) & mask
+
+    prereversal = """(%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask""" % (
+        prefix,framename,
+        prefix,framename,prefix,signalname, 
+        prefix,framename,prefix,signalname
+    )
+    
+    
+    if signal["byte_order"] == "little_endian":
+        cog.out(
+    """
+    %ssig_%s.raw = %s;"""
+        % (
+            prefix,signalname, prereversal
+        ));
+    else: #big endian
+        cog.out(
+    """
+    %ssig_%s.raw = reverseBits(%s, %ssig_%s.length);"""
+        % (
+            prefix,signalname, prereversal, 
+            prefix,signalname,
+        ));
+
+
+def packsignal(framename, signalname, signal):
+    print(framename)
+    # rawmessage |= ((uint64_t)signalraw&mask) << startbit
+    if signal["byte_order"] == "little_endian":
+        postreversal = "%ssig_%s.raw" % (prefix,signalname)
+    else:
+        postreversal = "reverseBits(%ssig_%s.raw,  %ssig_%s.length)" % (
+            prefix,signalname,
+            prefix,signalname
+        )
+    cog.out(
+"""
+    %s_%s.raw |= (uint64_t) ((uint64_t) %s & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
+        % (
+             prefix, framename,
+             postreversal,
+             prefix,framename,prefix,signalname, 
+             prefix,framename,prefix,signalname, 
+        ));
+        
+
+
+# multiplex recursion inception :)
+def expandmultiplex(framename, item, mode="rx"):
+    multiplexorname = list(item)[0]
+    if mode=='rx':
+        unpacksignal(framename=framename, signalname=multiplexorname, signal=frame['signals'][multiplexorname]) #unpack multiplexor signal
+    else:#tx
+        packsignal(framename=framename, signalname=multiplexorname, signal=frame['signals'][multiplexorname]) #unpack multiplexor signal
+
+    initialized = False
+    cog.outl("")
+
+    for multiplexvalue in list(item[multiplexorname]):
+        subitem = item[multiplexorname][multiplexvalue]
+        if len(subitem) ==0: # no signal associated to this value
+            pass
+        else:
+
+            if not initialized:
+                cog.out("""
+    if(%ssig_%s.raw == %s){"""%(
+                    prefix, multiplexorname, multiplexvalue
+                    ))
+                initialized = True;
+            else:
+                cog.out("""
+    }else if(%ssig_%s.raw == %s){"""%(
+                    prefix, multiplexorname, multiplexvalue
+                    ))
+
+
+            if type(subitem[0]) == str: # then it is a signal
+                for multiplexedsignalname in subitem:
+                    if mode=='rx':
+                        unpacksignal(framename=framename, signalname=multiplexedsignalname, signal=frame['signals'][multiplexedsignalname])
+                    else: #tx
+                        packsignal(framename=framename, signalname=multiplexedsignalname, signal=frame['signals'][multiplexedsignalname])
+            else:
+                expandmultiplex(framename, subitem[0], mode=mode)
+
+
+    cog.out("""
+    }""")
+
+
 for framename, frame in frames.items():
     if frame['RX']:
         cog.out(
@@ -273,31 +367,13 @@ static void %s_%s_receive(){
         % (
             prefix, framename
         ));
-        for signalname, signal in frame['signals'].items():
-            if signal['RX']==False and signal['TX']==False:
-                pass
+
+
+        for item in frame['signal_tree']:
+            if type(item) == str: # then it is a signal
+                unpacksignal(framename=framename, signalname=item, signal=frame['signals'][item])
             else:
-                # signalraw = (rawmessage >> startbit) & mask
-                prereversal = """(%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask""" % (
-                    prefix,framename,
-                    prefix,framename,prefix,signalname, 
-                    prefix,framename,prefix,signalname, 
-                )
-                if signal["byte_order"] == "little_endian":
-                    cog.out(
-    """
-         %ssig_%s.raw = %s"""
-                    % (
-                     prefix,signalname, prereversal
-                    ));
-                else: #big endian
-                    cog.out(
-    """
-         %ssig_%s.raw = reverseBits(%s, %ssig_%s.length);"""
-                    % (
-                     prefix,signalname, prereversal, 
-                     prefix,signalname,
-                    ));
+                expandmultiplex(framename, item, mode="rx")
 
 
         cog.out("""
@@ -313,29 +389,14 @@ static void %s_%s_send(){
             prefix, framename,
             prefix, framename
         ));
-        for signalname, signal in frame['signals'].items():
-            if signal['RX']==False and signal['TX']==False:
-                pass
-            else:
-                # rawmessage |= ((uint64_t)signalraw&mask) << startbit
-                if signal["byte_order"] == "little_endian":
-                    postreversal = "%ssig_%s.raw" % (prefix,signalname)
-                else:
-                    postreversal = "reverseBits(%ssig_%s.raw,  %ssig_%s.length)" % (
-                        prefix,signalname,
-                        prefix,signalname
-                        )
-                cog.out(
-"""
-    %s_%s.raw |= (uint64_t) ((uint64_t) %s & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
-                % (
-                 prefix, framename,
-                 postreversal,
-                 prefix,framename,prefix,signalname, 
-                 prefix,framename,prefix,signalname, 
-                ));
-        cog.out("""
 
+        for item in frame['signal_tree']:
+            if type(item) == str: 
+                packsignal(framename=framename, signalname=item, signal=frame['signals'][item])
+            else:
+                expandmultiplex(framename, item, mode='tx')
+        
+        cog.out("""
     %s_SendCallback(
         %s_%s.raw,
         %s_%s.ID,
@@ -398,14 +459,25 @@ struct %s_%s_t %s_%s = {
         else:
             cog.out(
         """
-        .%ssig_%s = {
+        .%ssig_%s = {""" % (prefix,signalname))
+
+            if sig['multiplexor'] is not None:
+                cog.out(
+        """
+            .multiplexor = &%ssig_%s,
+            .multiplexValues = %s,""" %(
+                prefix, sig['multiplexor'],
+                str(sig['multiplexValues']).replace("[", "{").replace("]", "}")
+            ))
+
+            cog.out(
+        """
             .signal = &%ssig_%s,
             .startbit = %s,
             .mask = %s
         },
         """
-        % (
-            prefix,signalname,
+        % (  
             prefix,signalname,
             sig['startbit'],
             sig['mask']

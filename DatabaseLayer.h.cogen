@@ -224,7 +224,20 @@ struct %s_%s_t{
         else:
             cog.out(
 """
-        const struct{
+        const struct{""");
+            
+            if signal['multiplexor'] is not None:
+                cog.out(
+        """
+            const struct %ssig_%s_t *multiplexor;
+            const int32_t multiplexValues[%s];""" 
+            %(
+                prefix, signal['multiplexor'],
+                len(signal['multiplexValues'])
+            ))
+
+            cog.out(
+            """
             const struct %ssig_%s_t *signal;
             const uint64_t startbit;
             const uint64_t mask;

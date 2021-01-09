@@ -30,6 +30,10 @@ class CANDatabaseLayer:
         "calculateCANFilter": True, #Calculates a can Filter for the RX messages
     }
 
+    # TODO Make Units optional
+    # TODO Make Comment optional
+
+
     def __init__(self, name):
         self.settings['prefix'] = name
         self.reset()
@@ -132,7 +136,6 @@ class CANDatabaseLayer:
 
         self.filter = filterobject;
 
-        #print(format(result, '#034b'))
         return filterobject
 
 
@@ -252,64 +255,83 @@ class CANDatabaseLayer:
         for frame in self.db.messages:
             self.processFrame(frame, filterbynode=filterbynode)
 
+    def removeDeadSignalTreeSigs(self, tree):
+        for item in tree:
+            if type(item) == str: #is signal
+                if item not in self.signals:
+                    tree.remove(item)
+            else:
+                multiplexorname = list(item)[0]
+                for multiplexedvalue, multiplexed in item[multiplexorname].items():
+                    self.removeDeadSignalTreeSigs(multiplexed)
+        return tree
+
+
     def processFrame(self, frame, filterbynode=False):
         if frame.is_multiplexed():
-            print("We don't still handle multiplexed messages and signals")
-        else:
-
-            fr = {}
-            fr["ID"] = hex(frame.frame_id);
-            fr["decID"] = frame.frame_id;
-            fr["comment"] = frame.comment;
-            if(frame.is_extended_frame):
-                fr["is_extended"] = "true"
-            else:
-                fr["is_extended"] = "false"
-
-            fr["DLC"] = frame.length;
-
-            fr["signals"] = {}
-
+            #propagate RX signals up the tree (if filtering by node)
             if filterbynode:
-                frameTX = self.node in frame.senders
-                frameRX = False;
-            else:
-                frameTX = True;
+                for signal in frame.signals:
+                    if self.node in signal.receivers:
+                        #if it is received parents also have to be received (to be able to unpack it)
+                        multiplexer = signal.multiplexer_signal
+                        # search signal and add this receiver so that is detected as RX
+                        for i in range(len(frame.signals)):
+                            if frame.signals[i].name == multiplexer:
+                                frame.signals[i].receivers.append(self.node)
+
+        fr = {}
+        fr["ID"] = hex(frame.frame_id);
+        fr["decID"] = frame.frame_id;
+        fr["comment"] = frame.comment;
+        if(frame.is_extended_frame):
+            fr["is_extended"] = "true"
+        else:
+            fr["is_extended"] = "false"
+
+        fr["DLC"] = frame.length;
+
+        fr["signals"] = {}
+
+        if filterbynode:
+            frameTX = self.node in frame.senders
+            frameRX = False;
+        else:
+            frameTX = True;
+            frameRX = True
+
+        for signal in frame.signals:
+            sig = self.processSignal(signal, frameTX, filterbynode=filterbynode)
+
+            sig["mask"] = "0b" + "1" * signal.length;
+
+            sig["startbit"] = signal.start
+
+            if signal.byte_order == "big_endian":
+                sig["startbit"] = sig["startbit"] - signal.length + 1
+
+            fr["signals"][signal.name] = sig
+
+            if sig['RX']:
                 frameRX = True
 
-            for signal in frame.signals:
-                sig = self.processSignal(signal, frameTX, filterbynode=filterbynode)
+        fr["RX"] = frameRX
+        fr["TX"] = frameTX
 
-                sig["mask"] = "0b" + "1" * signal.length;
+        if frameRX or frameTX:
+            self.frames[frame.name] = fr;
 
-                sig["startbit"] = signal.start
+        if frameTX:
+            fr["send_type"] = frame.send_type
+            fr["cycle_time"] = frame.cycle_time
+            self.InteractionLayerFrames[frame.name] = fr;
 
-                if signal.byte_order == "big_endian":
-                    sig["startbit"] = sig["startbit"] - signal.length + 1
-
-                fr["signals"][signal.name] = sig
-
-                if sig['RX']:
-                    frameRX = True
-
-            fr["RX"] = frameRX
-            fr["TX"] = frameTX
-
-            if frameRX or frameTX:
-                self.frames[frame.name] = fr;
-
-            if frameTX:
-                fr["send_type"] = frame.send_type
-                fr["cycle_time"] = frame.cycle_time
-                self.InteractionLayerFrames[frame.name] = fr;
+        fr['signal_tree'] = self.removeDeadSignalTreeSigs(frame.signal_tree);
 
     def processSignal(self, signal, frameTX, filterbynode=False):
         sig = {};
         sig['length'] = signal.length;
         sig['byte_order'] = signal.byte_order;
-
-        if signal.byte_order == "big_endian":
-            print("big_endian (motorola) byte orders are dodgy");
 
         if signal.unit is None:
             sig['unit'] = ""
@@ -318,13 +340,9 @@ class CANDatabaseLayer:
             sig['unit_len'] = len(signal.unit)
             sig['unit'] = signal.unit;
 
-
-
-
         #TODO: optimize factor, offset, min and max types Right now they are all doubles
         sig['factor'] = signal.scale;
         sig['offset'] = signal.offset;
-
 
         if signal.initial is None:
             sig['initial_value'] = 0;
@@ -411,6 +429,9 @@ calculated maximum: %s
         if (sig['RX'] or sig['TX']):
             self.signals[signal.name] = sig
 
+        sig['multiplexor'] = signal.multiplexer_signal
+        sig['multiplexValues'] = signal.multiplexer_ids
+        #TODO check if the multiplexor values should be the raw value or the physical value! They can only be integers. Either way, who would put a factor in a multiplexor signal???
         return sig
 
     def genFiles(self, srcfile=None, hdrfile=None):
@@ -456,5 +477,3 @@ if __name__ == '__main__':
     can.genFiles(srcfile=src, hdrfile=hdr);
     shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
     shutil.copyfile(r'STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')
-
-
