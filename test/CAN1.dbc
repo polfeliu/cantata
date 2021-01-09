@@ -38,8 +38,8 @@ VAL_TABLE_ Mux2 8 "Description for the value '0x8'" 7 "Description for the value
 VAL_TABLE_ Mux1 8 "Description for the value '0x8'" 7 "Description for the value '0x7'" 6 "Description for the value '0x6'" 5 "Description for the value '0x5'" 4 "Description for the value '0x4'" 3 "Description for the value '0x3'" 2 "Description for the value '0x2'" 1 "Description for the value '0x1'" 0 "Description for the value '0x0'" ;
 
 
-BO_ 769 MultiplexExample2: 8 Vector__XXX
- SG_ ExSignal9 m0 : 16|8@1- (1,0) [-128|127] ""  Engine
+BO_ 769 MultiplexExample2: 8 Engine
+ SG_ ExSignal9 m0 : 16|8@1- (1,0) [-128|127] "" Vector__XXX
  SG_ ExSignal8 m0M : 8|8@1- (1,0) [-128|127] "" Vector__XXX
  SG_ ExSignal7 M : 0|8@1- (1,0) [-128|127] "" Vector__XXX
 
