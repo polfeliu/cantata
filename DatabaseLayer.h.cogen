@@ -29,11 +29,13 @@ if settings['calculateCANFilter']:
 /*
  * CAN Filters: CAN Filters filter and mask
  */
+%s
 #define %s_StandardFilter   %s
 #define %s_StandardMask     %s
 #define %s_ExtendedFilter   %s
 #define %s_ExtendedMask     %s
  """ %(
+    filter['evaluation'],
     prefix, """{:#013b}""".format(filter['StandardFilter']),
     prefix, """{:#013b}""".format(filter['StandardMask']),
     prefix, """{:#031b}""".format(filter['ExtendedFilter']),

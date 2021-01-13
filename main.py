@@ -32,6 +32,8 @@ class CANDatabaseLayer:
 
     # TODO Make Units optional
     # TODO Make Comment optional
+    # TODO Option to make functions thread safe in FreeRTOS (portEnterCritical and portExitCritical)
+    # TODO Ignores for frames, signals, sending, receiving??
 
 
     def __init__(self, name):
@@ -130,9 +132,14 @@ class CANDatabaseLayer:
         matchedratio = Nidsmatched/Nidsall # obtained ratio of messages passing
         efficiency = passRatio/matchedratio
 
-        print("""{0:.0%}  of messages should be received by this ECU""".format(passRatio))
-        print("""This filter lets {0:.0%}""".format(matchedratio))
-        print("""Thus the filter has a {0:.0%} of efficiency""" .format(efficiency))
+        filterobject['evaluation'] = """
+// PassRatio: {passRatio:.0%}  // Messages that this ECU Reads
+// MatchedRatio: {matchedratio:.0%}  // Messages that the Filters lets pass
+// Efficiency: {efficiency:.0%}  // Effiency of the filter (passRation/matchedRatio)
+        """.format(
+            passRatio=passRatio,
+            matchedratio=matchedratio,
+            efficiency=efficiency);
 
         self.filter = filterobject;
 
@@ -230,7 +237,7 @@ class CANDatabaseLayer:
             sigmin = 0;
 
 
-        if sigmax == 0:
+        if sigmax == 0: #avoid divisions by 0 when calculating error
             if phymax == 0:
                 error = error + 0
             else:
@@ -238,7 +245,7 @@ class CANDatabaseLayer:
         else:
             error = error + abs((phymax - sigmax) / sigmax)
 
-        if sigmin == 0:
+        if sigmin == 0: #avoid divisions by 0 when calculating error
             if phymin == 0:
                 error = error + 0
             else:
@@ -265,7 +272,6 @@ class CANDatabaseLayer:
                 for multiplexedvalue, multiplexed in item[multiplexorname].items():
                     self.removeDeadSignalTreeSigs(multiplexed)
         return tree
-
 
     def processFrame(self, frame, filterbynode=False):
         if frame.is_multiplexed():

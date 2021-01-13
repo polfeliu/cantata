@@ -293,7 +293,6 @@ def unpacksignal(framename, signalname, signal):
 
 
 def packsignal(framename, signalname, signal):
-    print(framename)
     # rawmessage |= ((uint64_t)signalraw&mask) << startbit
     if signal["byte_order"] == "little_endian":
         postreversal = "%ssig_%s.raw" % (prefix,signalname)
