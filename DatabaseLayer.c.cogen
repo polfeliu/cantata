@@ -127,7 +127,7 @@ cog.out("""
 
 
 /*
- * Signal getValue and setValue method prototypes
+ * Signal getValue, setValue and setRaw method prototypes
  */
 
 /*[[[cog
@@ -144,6 +144,13 @@ for signame, sig in signals.items():
         % (
             prefix, signame, sig['getsetValue_type']
         ));
+
+        cog.outl(
+"""static void %ssig_%s_setRaw(%s);"""
+        % (
+            prefix, signame, sig['value_type']
+        ));
+
 ]]]*/
 //[[[end]]]
 
@@ -187,10 +194,14 @@ struct %ssig_%s_t %ssig_%s = {
     if sig["TX"]:
         cog.out(
     """,
-    .setValue = %ssig_%s_setValue"""
+    .setValue = %ssig_%s_setValue,
+    .setRaw = %ssig_%s_setRaw"""
         % (
+            prefix,signame,
             prefix,signame
         ));
+
+
 
     cog.out("""
 };
@@ -202,10 +213,13 @@ struct %ssig_%s_t %ssig_%s = {
 /*
  * Signals: Signal getValue and setValue private methods
  */
-
 /*[[[cog
 import cog
 for signame, sig in signals.items():
+    cog.outl("") #Space
+    cog.out("""
+// %s
+""" % (signame))
     cog.out(
 """static %s %ssig_%s_getValue(){
 """%(sig['getsetValue_type'],prefix,signame));
@@ -254,6 +268,14 @@ for signame, sig in signals.items():
     return !saturation;
 }
 """);
+
+        cog.out(
+"""static void %ssig_%s_setRaw(%s raw){
+    %ssig_%s.raw = raw;
+}"""%(
+        prefix, signame, sig['value_type'],
+        prefix, signame
+        ));
 
 ]]]*/
 //[[[end]]]

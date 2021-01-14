@@ -176,9 +176,11 @@ struct %ssig_%s_t{
     if sig["TX"]:
         cog.outl(
             """
-    const bool (*setValue)(%s);"""
+    const bool (*setValue)(%s);
+    const void (*setRaw)(%s);"""
         % (
             sig['getsetValue_type'],
+            sig['value_type']
         ));
 
     cog.outl("""};"""
