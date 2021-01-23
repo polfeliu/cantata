@@ -1,11 +1,13 @@
 import os
+import copy
 import cogapp
 import cantools
 import shutil
 import re
 import sys
 from pprint import pprint
-import os
+
+from cantools.database.can.attribute import Attribute
 
 codegen = cogapp.Cog();
 codegen.options.bDeleteCode = True;
@@ -33,8 +35,10 @@ class CANDatabaseLayer:
     # TODO Make Units optional
     # TODO Make Comment optional
     # TODO Option to make functions thread safe in FreeRTOS (portEnterCritical and portExitCritical)
-    # TODO Ignores for frames, signals, sending, receiving??
-
+    # TODO InteractionLayer Bind to Message Received events to Messages received
+    # TODO Licensing :D
+    # TODO FreeRtos Initialization of signals and messages, how is this handled?
+    # TODO Raw messages with variable length according to DLC. Would reduce memory footprint and it would be easy to use this lib with CANFD (64 bytes per message)
 
     def __init__(self, name):
         self.settings['prefix'] = name
@@ -43,6 +47,7 @@ class CANDatabaseLayer:
     def reset(self):
         self.frames = {}
         self.signals = {}
+        self.signalparents = {}
         self.valuetables = {}
         self.InteractionLayerFrames = {}
         self.InteractionLayer = {}
@@ -126,10 +131,11 @@ class CANDatabaseLayer:
         Nidsmatched = len(idsmatched)
         Nidsnotmatched = len(idsnotmatched)
         Nidsall = Nidsmatched + Nidsnotmatched;
-        NpassIDs = len(passIDs)
 
+        NpassIDs = len(passIDs)
         passRatio = NpassIDs / Nidsall #wanted ratio of messages passing
         matchedratio = Nidsmatched/Nidsall # obtained ratio of messages passing
+
         efficiency = passRatio/matchedratio
 
         filterobject['evaluation'] = """
@@ -155,16 +161,96 @@ class CANDatabaseLayer:
 
     def processFreeRTOSInteractionLayer(self):
         #For Now we consider all messages as cyclic
-        timegroups = {}
+        CycleTimeGroups = {};
+        CycleTimeFastMsg = {};
+        OnWriteOnChange = {}; #If it is with repetition it will resumes the fast group
 
         for framename, fr in self.InteractionLayerFrames.items():
-            time = str(fr["cycle_time"])
-            if not time in timegroups:
-                timegroups[time] = []
+            if fr['send_type'] == "Cyclic":
+                time = str(fr["cycle_time"])
+                if not time in CycleTimeGroups:
+                    CycleTimeGroups[time] = []
+                CycleTimeGroups[time].append(framename)
 
-            timegroups[time].append(framename)
+            def CycleTimeFastAddMsg(framename):
+                if "GenMsgCycleTimeFast" in self.frames[framename]['attributes']:
+                    time = self.frames[framename]['attributes']['GenMsgCycleTimeFast'].value
+                    if framename not in CycleTimeFastMsg:
+                        CycleTimeFastMsg[framename] = {
+                            "time": time,
+                            "ActiveCheckSignals": [],
+                            "ActiveRepetitionsResetSignals" : [],
+                            "FastDelayedResumeTask": False
+                        }
 
-        self.InteractionLayer = timegroups
+            def safeOnWriteOnChangeAppend(framename, signalname):
+                if not framename in OnWriteOnChange:
+                    OnWriteOnChange[framename] = [signalname];
+                else:
+                    OnWriteOnChange[framename].append(signalname)
+
+            def checkIfParentHasRepetitions(framename, signalname):
+                if "GenMsgNrOfRepetition" not in self.frames[framename]['attributes']:
+                    definition = self.frames[framename]['attribute_definitions']['GenMsgNrOfRepetition']
+                    self.frames[framename]['attributes']['GenMsgNrOfRepetition'] = Attribute(definition.default_value, definition)
+
+            def checkIfParentHasFastTime(framename,signalname):
+                if "GenMsgCycleTimeFast" not in self.frames[framename]['attributes']:
+                    definition = self.frames[framename]['attribute_definitions']['GenMsgCycleTimeFast']
+                    self.frames[framename]['attributes']['GenMsgCycleTimeFast'] = Attribute(definition.default_value, definition)
+
+            def CycleTimeFastMsgAddActiveCheck(framename, signalname):
+                CycleTimeFastMsg[framename]["ActiveCheckSignals"].append(signalname)
+
+            def CycleTimeFastMsgAddActiveRepetitionsReset(framename, signalname):
+                CycleTimeFastMsg[framename]["ActiveRepetitionsResetSignals"].append(signalname)
+
+            def activateFastDelayedResumeTask(framename):
+                CycleTimeFastMsg[framename]["FastDelayedResumeTask"] = True
+
+            for signalname, signal in fr['signals'].items():
+                if 'GenSigSendType' in signal['attributes']:
+                    GenSigSendType = signal['attributes']['GenSigSendType'].value
+                    choices = signal['attribute_definitions']['GenSigSendType'].choices
+
+                    if GenSigSendType == choices.index("Cyclic"):
+                        #Do Nothing. Cyclics are typically defined in messages
+                        pass
+                    elif GenSigSendType == choices.index("OnWrite"):
+                        safeOnWriteOnChangeAppend(framename, signalname);
+
+                    elif GenSigSendType == choices.index("OnWriteWithRepetition"):
+                        safeOnWriteOnChangeAppend(framename, signalname);
+                        checkIfParentHasRepetitions(framename, signalname)
+                        checkIfParentHasFastTime(framename, signalname)
+                        CycleTimeFastAddMsg(framename)
+                        activateFastDelayedResumeTask(framename)
+
+                    elif GenSigSendType == choices.index("OnChange"):
+                        safeOnWriteOnChangeAppend(framename, signalname);
+
+                    elif GenSigSendType == choices.index("OnChangeWithRepetition"):
+                        safeOnWriteOnChangeAppend(framename, signalname);
+                        checkIfParentHasRepetitions(framename, signalname)
+                        checkIfParentHasFastTime(framename, signalname)
+                        CycleTimeFastAddMsg(framename)
+                        activateFastDelayedResumeTask(framename)
+
+                    elif GenSigSendType == choices.index("IfActive"):
+                        checkIfParentHasFastTime(framename, signalname)
+                        CycleTimeFastAddMsg(framename)
+                        CycleTimeFastMsgAddActiveCheck(framename, signalname)
+
+                    elif GenSigSendType == choices.index("IfActiveWithRepetition"):
+                        checkIfParentHasRepetitions(framename, signalname)
+                        checkIfParentHasFastTime(framename, signalname)
+                        CycleTimeFastAddMsg(framename)
+                        CycleTimeFastMsgAddActiveCheck(framename, signalname)
+                        CycleTimeFastMsgAddActiveRepetitionsReset(framename, signalname)
+
+        self.InteractionLayer['CycleTimeGroups'] = CycleTimeGroups
+        self.InteractionLayer['OnWriteOnChange'] = OnWriteOnChange
+        self.InteractionLayer['CycleTimeFastMsg'] = CycleTimeFastMsg
 
     def process(self, node = None):
         if node:
@@ -307,7 +393,12 @@ class CANDatabaseLayer:
             frameRX = True
 
         for signal in frame.signals:
-            sig = self.processSignal(signal, frameTX, filterbynode=filterbynode)
+            sig = self.processSignal(signal, frameTX, filterbynode=filterbynode).copy() #copy structure instead of linking it. The Global signals should not have start bit, mask and multiplexing information
+
+            if not signal.name in self.signalparents:
+                self.signalparents[signal.name] = [frame.name]
+            else:
+                self.signalparents[signal.name].append(frame.name)
 
             sig["mask"] = "0b" + "1" * signal.length;
 
@@ -321,18 +412,30 @@ class CANDatabaseLayer:
             if sig['RX']:
                 frameRX = True
 
+
         fr["RX"] = frameRX
         fr["TX"] = frameTX
 
-        if frameRX or frameTX:
-            self.frames[frame.name] = fr;
+        fr['signal_tree'] = self.removeDeadSignalTreeSigs(frame.signal_tree);
 
-        if frameTX:
+        fr['attributes'] = frame.dbc.attributes
+        fr['attribute_definitions'] = frame.dbc.attribute_definitions
+
+        if frameTX and self.settings['FreeRTOSInteractionLayer']:
             fr["send_type"] = frame.send_type
             fr["cycle_time"] = frame.cycle_time
+
+            '''
+            if 'GenMsgNrOfRepetitions' in fr['attributes']:
+                fr['NrOfRepetitions'] = fr['attributes']['GenMsgNrOfRepetitions'].value
+            else:
+                fr['NrOfRepetitions'] = 0
+            '''
             self.InteractionLayerFrames[frame.name] = fr;
 
-        fr['signal_tree'] = self.removeDeadSignalTreeSigs(frame.signal_tree);
+
+        if frameRX or frameTX:
+            self.frames[frame.name] = fr;
 
     def processSignal(self, signal, frameTX, filterbynode=False):
         sig = {};
@@ -432,11 +535,24 @@ calculated maximum: %s
             sig['RX'] = True
             sig['TX'] = True;
 
-        if (sig['RX'] or sig['TX']):
-            self.signals[signal.name] = sig
-
         sig['multiplexor'] = signal.multiplexer_signal
         sig['multiplexValues'] = signal.multiplexer_ids
+
+
+        sig['attributes'] = signal.dbc.attributes
+        sig['attribute_definitions'] = signal.dbc.attribute_definitions
+
+
+        if (sig['RX'] or sig['TX']):
+            if signal.name not in self.signals:
+                self.signals[signal.name] = sig
+            else:
+                if str(sig) == str(self.signals[signal.name]):
+                    # Signal properties are equal thus is the same signa on the database
+                    pass
+                else:
+                    raise SystemExit("Signal %s is reapeated In this database, as of now we can't handle that, please create unique names" % (signal.name))
+
         #TODO check if the multiplexor values should be the raw value or the physical value! They can only be integers. Either way, who would put a factor in a multiplexor signal???
         return sig
 
@@ -446,6 +562,7 @@ calculated maximum: %s
         globals["settings"] = self.settings;
         globals["frames"] = self.frames;
         globals["signals"] = self.signals;
+        globals["signalparents"] = self.signalparents
         globals["valuetables"] = self.valuetables;
         globals["InteractionLayer"] = self.InteractionLayer
         globals["filter"] = self.filter
@@ -483,3 +600,5 @@ if __name__ == '__main__':
     can.genFiles(srcfile=src, hdrfile=hdr);
     shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
     shutil.copyfile(r'STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')
+
+    #pprint(can.signalparents)

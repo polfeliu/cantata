@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "DatabaseLayer.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +56,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
+/* Definitions for aux */
+osThreadId_t auxHandle;
+const osThreadAttr_t aux_attributes = {
+  .name = "aux",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -62,6 +70,7 @@ const osThreadAttr_t defaultTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+void auxTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -95,6 +104,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
+  /* creation of aux */
+  auxHandle = osThreadNew(auxTask, NULL, &aux_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -111,33 +123,101 @@ void MX_FREERTOS_Init(void) {
   * @param  argument: Not used
   * @retval None
   */
+
+enum{
+	Cyclic,
+	OnWrite,
+	OnWriteWithRepetitions,
+	OnChange,
+	OnChangeWithRepetitions,
+	IfActive,
+	IfActiveWithRepetitions,
+} InteractionLayerDemo;
+
+
+extern TaskHandle_t vTaskInteractionLayer_CAN1_cyclic_1000ms_Handle;
+
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+	GPIO_PinState button_last;
+	GPIO_PinState button = button = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);;
+
+	InteractionLayerDemo = Cyclic; // Change to try the different modes
+
+	if(InteractionLayerDemo != Cyclic){
+		// for simplicity lets disable the cyclic task
+		vTaskSuspend(vTaskInteractionLayer_CAN1_cyclic_1000ms_Handle);
+	}
   /* Infinite loop */
   for(;;)
   {
+    vTaskDelay(pdMS_TO_TICKS(50));
 
-    CAN1sig_SleepInd			.setValue(true);
-    CAN1sig_Gear				.setValue(CAN1sig_GearVT_Gear_1);
-    CAN1sig_ShiftRequest		.setValue(CAN1sig_ShiftRequestVT_Shift_Request_On);
-    CAN1sig_EcoMode				.setValue(3);
-    CAN1sig_Status				.setValue(CAN1sig_StatusVT_Running);
-    CAN1sig_ErrorCode			.setValue(5);
-    CAN1sig_EngSpeed			.setValue(100);
-    CAN1sig_EngForce			.setValue(100);
-    CAN1sig_EngTemp				.setValue(100);
-    CAN1sig_IdleRunning			.setValue(CAN1sig_IdleRunningVT_Idle);
-    CAN1sig_PetrolLevel			.setValue(100);
-    CAN1sig_EngPower			.setValue(100);
-    CAN1sig_CarSpeed			.setValue(100);
-    CAN1sig_GearLock			.setValue(CAN1sig_GearLockVT_Gear_Lock_Off);
-    CAN1sig_Diagnostics			.setValue(100);
-    CAN1sig_AccelerationForce	.setValue(100);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    button_last = button;
+    button = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);
+
+    switch (InteractionLayerDemo) {
+		case OnWrite:
+			if(button != button_last){
+				CAN1sig_EngSpeed.setValue(1);
+			}
+			break;
+		case OnWriteWithRepetitions:
+			if(button != button_last){
+				CAN1sig_EngTemp.setValue(1);
+			}
+			break;
+		case OnChange:
+			CAN1sig_IdleRunning.setValue(button);
+			break;
+		case OnChangeWithRepetitions:
+			CAN1sig_AccelerationForce.setValue(button);
+			break;
+		case IfActive:
+			if(button){
+				CAN1sig_ExSignal9.setValue(CAN1sig_ExSignal9.inactiveValue);
+			}else{
+				CAN1sig_ExSignal9.setValue(1);
+			}
+			break;
+		case IfActiveWithRepetitions:
+			if(button){
+				CAN1sig_ErrorCode.setValue(CAN1sig_ExSignal9.inactiveValue);
+			}else{
+				CAN1sig_ErrorCode.setValue(1);
+			}
+			break;
+		default:
+			break;
+
+	}
+
   }
   /* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_auxTask */
+/**
+* @brief Function implementing the aux thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_auxTask */
+void auxTask(void *argument)
+{
+  /* USER CODE BEGIN auxTask */
+  /* Infinite loop */
+  for(;;)
+  {
+	  xTaskNotifyWait( 0,     //ulBitsToClearOnEntry
+			  	  	  	  0,     //ulBitsToClearOnExit
+	                           NULL,  //*pulNotificationValue
+	                           portMAX_DELAY );
+	  //HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  }
+  /* USER CODE END auxTask */
 }
 
 /* Private application code --------------------------------------------------*/

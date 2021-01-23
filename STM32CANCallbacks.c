@@ -41,7 +41,7 @@ void InitCAN1(CAN_HandleTypeDef *canh){
 	  Error_Handler();
   	}
 
-  	CAN1_InteractionLayerInit();
+  	CAN1_InteractionLayerStart();
 }
 
 

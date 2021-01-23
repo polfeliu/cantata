@@ -13,6 +13,7 @@ void InitCAN1(CAN_HandleTypeDef *canh){
 
 	CAN_FilterTypeDef sFilterConfig;
 
+    sFilterConfig.FilterBank = 0;
 	sFilterConfig.FilterIdHigh     = ((int32_t)CAN1_StandardFilter  << 5) + ((int32_t) CAN1_ExtendedFilter >> 13);
 	sFilterConfig.FilterMaskIdHigh = ((int32_t) CAN1_StandardMask   << 5) + ((int32_t) CAN1_ExtendedMask   >> 13);
 	sFilterConfig.FilterIdLow 	   = ((int32_t) CAN1_ExtendedFilter << 3);
@@ -40,7 +41,7 @@ void InitCAN1(CAN_HandleTypeDef *canh){
 	  Error_Handler();
   	}
 
-  	CAN1_InteractionLayerInit();
+  	CAN1_InteractionLayerStart();
 }
 
 

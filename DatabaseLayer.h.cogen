@@ -5,6 +5,10 @@
 #endif
 #include <stdint.h> 
 #include "stdbool.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
+typedef float single;
 
 /*[[[cog
 import cog
@@ -16,7 +20,7 @@ if settings['FreeRTOSInteractionLayer']:
         """);
 
     cog.out("""
-void %s_InteractionLayerInit(void);
+void %s_InteractionLayerStart(void);
     """ % prefix)
 ]]]*/
 //[[[end]]]
@@ -174,7 +178,7 @@ struct %ssig_%s_t{
     ));
 
     if sig["TX"]:
-        cog.outl(
+        cog.out(
             """
     const bool (*setValue)(%s);
     const void (*setRaw)(%s);"""
@@ -183,7 +187,22 @@ struct %ssig_%s_t{
             sig['value_type']
         ));
 
-    cog.outl("""};"""
+        if settings['FreeRTOSInteractionLayer']:
+            cog.out(
+        """
+    bool sent;""")
+
+            if 'GenSigSendType' in sig['attributes']:
+                GenSigSendType = sig['attributes']['GenSigSendType'].value
+                choices = sig['attribute_definitions']['GenSigSendType'].choices
+
+                if (GenSigSendType == choices.index("IfActive")) or (GenSigSendType == choices.index("IfActiveWithRepetition")):
+                    cog.out(
+        """
+    uint32_t inactiveValue;""")
+
+    cog.outl("""
+};"""
     	)
 ]]]*/
 //[[[end]]]
@@ -201,8 +220,7 @@ struct %s_%s_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
-""" % (
+    uint64_t raw;""" % (
         frame['comment'],
         prefix,framename,
     ));
@@ -217,6 +235,14 @@ struct %s_%s_t{
         cog.out("""
     const void (*send)(void);"""
         %());
+
+    if settings['FreeRTOSInteractionLayer']:
+        if 'GenMsgNrOfRepetition' in frame['attributes']:
+            cog.out("""
+    const uint32_t repetitions;
+    uint32_t repetitionsleft;"""
+        %());
+
 
     cog.out("""
     const struct %s_%s_signals_t{"""%(prefix, framename));

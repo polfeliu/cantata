@@ -5,13 +5,17 @@
 #endif
 #include <stdint.h> 
 #include "stdbool.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
+typedef float single;
 
 
 /*
  * Interaction Layer: Start function prototype
  */
         
-void CAN1_InteractionLayerInit(void);
+void CAN1_InteractionLayerStart(void);
     
 
 
@@ -20,9 +24,9 @@ void CAN1_InteractionLayerInit(void);
  * CAN Filters: CAN Filters filter and mask
  */
 
-// PassRatio: 33%  // Messages that this ECU Reads
-// MatchedRatio: 50%  // Messages that the Filters lets pass
-// Efficiency: 67%  // Effiency of the filter (passRation/matchedRatio)
+// PassRatio: 67%  // Messages that this ECU Reads
+// MatchedRatio: 67%  // Messages that the Filters lets pass
+// Efficiency: 100%  // Effiency of the filter (passRation/matchedRatio)
         
 #define CAN1_StandardFilter   0b01100000000
 #define CAN1_StandardMask     0b10010011000
@@ -66,6 +70,11 @@ typedef enum {
 /*
  * Enum definitions for value tables
  */
+
+typedef enum {
+    CAN1sig_GearLockVT_Gear_Lock_On=1,
+    CAN1sig_GearLockVT_Gear_Lock_Off=0,
+}CAN1sig_GearLockVT_t;
 
 typedef enum {
     CAN1sig_EXSignal1VT_Description_for_the_value_0x8=8,
@@ -117,30 +126,32 @@ typedef enum {
     CAN1sig_IdleRunningVT_Idle=1,
 }CAN1sig_IdleRunningVT_t;
 
-typedef enum {
-    CAN1sig_GearLockVT_Gear_Lock_On=1,
-    CAN1sig_GearLockVT_Gear_Lock_Off=0,
-}CAN1sig_GearLockVT_t;
-
 /*
  * Export message structs
  */
 
+struct CAN1_FloatExample2_t CAN1_FloatExample2;
+struct CAN1_FloatExample_t CAN1_FloatExample;
+struct CAN1_ABSdata_t CAN1_ABSdata;
 struct CAN1_MultiplexExample2_t CAN1_MultiplexExample2;
 struct CAN1_MultiplexExample_t CAN1_MultiplexExample;
 struct CAN1_Ignition_Info_t CAN1_Ignition_Info;
-struct CAN1_DiagResponse_Motor_t CAN1_DiagResponse_Motor;
 struct CAN1_NM_Engine_t CAN1_NM_Engine;
 struct CAN1_GearBoxInfo_t CAN1_GearBoxInfo;
 struct CAN1_EngineStatus_t CAN1_EngineStatus;
-struct CAN1_EngineDataIEEE_t CAN1_EngineDataIEEE;
 struct CAN1_EngineData_t CAN1_EngineData;
-struct CAN1_ABSdata_t CAN1_ABSdata;
 
 /*
  * Export signal structs
  */
 
+struct CAN1sig_DoubleExample_t CAN1sig_DoubleExample;
+struct CAN1sig_SingleExample_t CAN1sig_SingleExample;
+struct CAN1sig_SingleExample2_t CAN1sig_SingleExample2;
+struct CAN1sig_CarSpeed_t CAN1sig_CarSpeed;
+struct CAN1sig_GearLock_t CAN1sig_GearLock;
+struct CAN1sig_Diagnostics_t CAN1sig_Diagnostics;
+struct CAN1sig_AccelerationForce_t CAN1sig_AccelerationForce;
 struct CAN1sig_ExSignal7_t CAN1sig_ExSignal7;
 struct CAN1sig_ExSignal8_t CAN1sig_ExSignal8;
 struct CAN1sig_ExSignal9_t CAN1sig_ExSignal9;
@@ -156,323 +167,65 @@ struct CAN1sig_EcoMode_t CAN1sig_EcoMode;
 struct CAN1sig_Status_t CAN1sig_Status;
 struct CAN1sig_ErrorCode_t CAN1sig_ErrorCode;
 struct CAN1sig_EngSpeed_t CAN1sig_EngSpeed;
-struct CAN1sig_EngForce_t CAN1sig_EngForce;
 struct CAN1sig_EngTemp_t CAN1sig_EngTemp;
 struct CAN1sig_IdleRunning_t CAN1sig_IdleRunning;
 struct CAN1sig_PetrolLevel_t CAN1sig_PetrolLevel;
+struct CAN1sig_EngForce_t CAN1sig_EngForce;
 struct CAN1sig_EngPower_t CAN1sig_EngPower;
-struct CAN1sig_CarSpeed_t CAN1sig_CarSpeed;
-struct CAN1sig_GearLock_t CAN1sig_GearLock;
-struct CAN1sig_Diagnostics_t CAN1sig_Diagnostics;
-struct CAN1sig_AccelerationForce_t CAN1sig_AccelerationForce;
 
 /*
  * Define types of the signal structs
  */
 
-struct CAN1sig_ExSignal7_t{
+struct CAN1sig_DoubleExample_t{
     const uint8_t length;
     const CANbyteorder_t byte_order;
     const CANvaluetype_t value_type;
     const char unit[0];
-    const int8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const int8_t (*getValue)(void);
-    const bool (*setValue)(int8_t);
-    const void (*setRaw)(int8_t);
-};
-
-struct CAN1sig_ExSignal8_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const int8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const int8_t (*getValue)(void);
-    const bool (*setValue)(int8_t);
-    const void (*setRaw)(int8_t);
-};
-
-struct CAN1sig_ExSignal9_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const int8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const int8_t (*getValue)(void);
-    const bool (*setValue)(int8_t);
-    const void (*setRaw)(int8_t);
-};
-
-struct CAN1sig_EXSignal1_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const CAN1sig_EXSignal1VT_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const CAN1sig_EXSignal1VT_t (*getValue)(void);};
-
-struct CAN1sig_EXSignal2_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const CAN1sig_EXSignal2VT_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const CAN1sig_EXSignal2VT_t (*getValue)(void);};
-
-struct CAN1sig_EXSignal3_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const int8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const int8_t (*getValue)(void);};
-
-struct CAN1sig_EXSignal4_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const int8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    int8_t raw;
-    const int8_t (*getValue)(void);};
-
-struct CAN1sig_StarterKey_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const bool initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    bool raw;
-    const bool (*getValue)(void);};
-
-struct CAN1sig_SleepInd_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const bool initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    bool raw;
-    const bool (*getValue)(void);
-    const bool (*setValue)(bool);
-    const void (*setRaw)(bool);
-};
-
-struct CAN1sig_ShiftRequest_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const CAN1sig_ShiftRequestVT_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    bool raw;
-    const CAN1sig_ShiftRequestVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_ShiftRequestVT_t);
-    const void (*setRaw)(bool);
-};
-
-struct CAN1sig_Gear_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const CAN1sig_GearVT_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint8_t raw;
-    const CAN1sig_GearVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_GearVT_t);
-    const void (*setRaw)(uint8_t);
-};
-
-struct CAN1sig_EcoMode_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const uint8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
-};
-
-struct CAN1sig_Status_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const CAN1sig_StatusVT_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint8_t raw;
-    const CAN1sig_StatusVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_StatusVT_t);
-    const void (*setRaw)(uint8_t);
-};
-
-struct CAN1sig_ErrorCode_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[0];
-    const uint8_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
-};
-
-struct CAN1sig_EngSpeed_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[3];
-    const uint16_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint16_t raw;
-    const uint16_t (*getValue)(void);
-    const bool (*setValue)(uint16_t);
-    const void (*setRaw)(uint16_t);
-};
-
-struct CAN1sig_EngForce_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[1];
-    const uint16_t initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint16_t raw;
-    const uint16_t (*getValue)(void);
-    const bool (*setValue)(uint16_t);
-    const void (*setRaw)(uint16_t);
-};
-
-struct CAN1sig_EngTemp_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[4];
     const double initial_value ;
     const double factor ;
     const double offset ;
     const double min ;
     const double max ;
-    uint8_t raw;
+    double raw;
     const double (*getValue)(void);
     const bool (*setValue)(double);
-    const void (*setRaw)(uint8_t);
+    const void (*setRaw)(double);
+    bool sent;
 };
 
-struct CAN1sig_IdleRunning_t{
+struct CAN1sig_SingleExample_t{
     const uint8_t length;
     const CANbyteorder_t byte_order;
     const CANvaluetype_t value_type;
     const char unit[0];
-    const CAN1sig_IdleRunningVT_t initial_value ;
+    const single initial_value ;
     const double factor ;
     const double offset ;
     const double min ;
     const double max ;
-    bool raw;
-    const CAN1sig_IdleRunningVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_IdleRunningVT_t);
-    const void (*setRaw)(bool);
+    single raw;
+    const single (*getValue)(void);
+    const bool (*setValue)(single);
+    const void (*setRaw)(single);
+    bool sent;
 };
 
-struct CAN1sig_PetrolLevel_t{
+struct CAN1sig_SingleExample2_t{
     const uint8_t length;
     const CANbyteorder_t byte_order;
     const CANvaluetype_t value_type;
-    const char unit[1];
-    const uint8_t initial_value ;
+    const char unit[0];
+    const single initial_value ;
     const double factor ;
     const double offset ;
     const double min ;
     const double max ;
-    uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
-};
-
-struct CAN1sig_EngPower_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[2];
-    const double initial_value ;
-    const double factor ;
-    const double offset ;
-    const double min ;
-    const double max ;
-    uint16_t raw;
-    const double (*getValue)(void);
-    const bool (*setValue)(double);
-    const void (*setRaw)(uint16_t);
+    single raw;
+    const single (*getValue)(void);
+    const bool (*setValue)(single);
+    const void (*setRaw)(single);
+    bool sent;
 };
 
 struct CAN1sig_CarSpeed_t{
@@ -489,6 +242,7 @@ struct CAN1sig_CarSpeed_t{
     const double (*getValue)(void);
     const bool (*setValue)(double);
     const void (*setRaw)(uint16_t);
+    bool sent;
 };
 
 struct CAN1sig_GearLock_t{
@@ -505,6 +259,7 @@ struct CAN1sig_GearLock_t{
     const CAN1sig_GearLockVT_t (*getValue)(void);
     const bool (*setValue)(CAN1sig_GearLockVT_t);
     const void (*setRaw)(bool);
+    bool sent;
 };
 
 struct CAN1sig_Diagnostics_t{
@@ -521,6 +276,7 @@ struct CAN1sig_Diagnostics_t{
     const uint8_t (*getValue)(void);
     const bool (*setValue)(uint8_t);
     const void (*setRaw)(uint8_t);
+    bool sent;
 };
 
 struct CAN1sig_AccelerationForce_t{
@@ -537,6 +293,334 @@ struct CAN1sig_AccelerationForce_t{
     const double (*getValue)(void);
     const bool (*setValue)(double);
     const void (*setRaw)(uint16_t);
+    bool sent;
+};
+
+struct CAN1sig_ExSignal7_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const int8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const int8_t (*getValue)(void);
+    const bool (*setValue)(int8_t);
+    const void (*setRaw)(int8_t);
+    bool sent;
+};
+
+struct CAN1sig_ExSignal8_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const int8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const int8_t (*getValue)(void);
+    const bool (*setValue)(int8_t);
+    const void (*setRaw)(int8_t);
+    bool sent;
+};
+
+struct CAN1sig_ExSignal9_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const int8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const int8_t (*getValue)(void);
+    const bool (*setValue)(int8_t);
+    const void (*setRaw)(int8_t);
+    bool sent;
+    uint32_t inactiveValue;
+};
+
+struct CAN1sig_EXSignal1_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const CAN1sig_EXSignal1VT_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const CAN1sig_EXSignal1VT_t (*getValue)(void);
+};
+
+struct CAN1sig_EXSignal2_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const CAN1sig_EXSignal2VT_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const CAN1sig_EXSignal2VT_t (*getValue)(void);
+};
+
+struct CAN1sig_EXSignal3_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const int8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const int8_t (*getValue)(void);
+};
+
+struct CAN1sig_EXSignal4_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const int8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    const int8_t (*getValue)(void);
+};
+
+struct CAN1sig_StarterKey_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const bool initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    bool raw;
+    const bool (*getValue)(void);
+};
+
+struct CAN1sig_SleepInd_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const bool initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    bool raw;
+    const bool (*getValue)(void);
+    const bool (*setValue)(bool);
+    const void (*setRaw)(bool);
+    bool sent;
+};
+
+struct CAN1sig_ShiftRequest_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const CAN1sig_ShiftRequestVT_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    bool raw;
+    const CAN1sig_ShiftRequestVT_t (*getValue)(void);
+    const bool (*setValue)(CAN1sig_ShiftRequestVT_t);
+    const void (*setRaw)(bool);
+    bool sent;
+};
+
+struct CAN1sig_Gear_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const CAN1sig_GearVT_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint8_t raw;
+    const CAN1sig_GearVT_t (*getValue)(void);
+    const bool (*setValue)(CAN1sig_GearVT_t);
+    const void (*setRaw)(uint8_t);
+    bool sent;
+};
+
+struct CAN1sig_EcoMode_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const uint8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint8_t raw;
+    const uint8_t (*getValue)(void);
+    const bool (*setValue)(uint8_t);
+    const void (*setRaw)(uint8_t);
+    bool sent;
+};
+
+struct CAN1sig_Status_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const CAN1sig_StatusVT_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint8_t raw;
+    const CAN1sig_StatusVT_t (*getValue)(void);
+    const bool (*setValue)(CAN1sig_StatusVT_t);
+    const void (*setRaw)(uint8_t);
+    bool sent;
+};
+
+struct CAN1sig_ErrorCode_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const uint8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint8_t raw;
+    const uint8_t (*getValue)(void);
+    const bool (*setValue)(uint8_t);
+    const void (*setRaw)(uint8_t);
+    bool sent;
+    uint32_t inactiveValue;
+};
+
+struct CAN1sig_EngSpeed_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[3];
+    const uint16_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint16_t raw;
+    const uint16_t (*getValue)(void);
+    const bool (*setValue)(uint16_t);
+    const void (*setRaw)(uint16_t);
+    bool sent;
+};
+
+struct CAN1sig_EngTemp_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[4];
+    const double initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint8_t raw;
+    const double (*getValue)(void);
+    const bool (*setValue)(double);
+    const void (*setRaw)(uint8_t);
+    bool sent;
+};
+
+struct CAN1sig_IdleRunning_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const CAN1sig_IdleRunningVT_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    bool raw;
+    const CAN1sig_IdleRunningVT_t (*getValue)(void);
+    const bool (*setValue)(CAN1sig_IdleRunningVT_t);
+    const void (*setRaw)(bool);
+    bool sent;
+};
+
+struct CAN1sig_PetrolLevel_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[1];
+    const uint8_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint8_t raw;
+    const uint8_t (*getValue)(void);
+    const bool (*setValue)(uint8_t);
+    const void (*setRaw)(uint8_t);
+    bool sent;
+};
+
+struct CAN1sig_EngForce_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[1];
+    const uint16_t initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint16_t raw;
+    const uint16_t (*getValue)(void);
+    const bool (*setValue)(uint16_t);
+    const void (*setRaw)(uint16_t);
+    bool sent;
+};
+
+struct CAN1sig_EngPower_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[2];
+    const double initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    uint16_t raw;
+    const double (*getValue)(void);
+    const bool (*setValue)(double);
+    const void (*setRaw)(uint16_t);
+    bool sent;
 };
 
 /*
@@ -544,13 +628,88 @@ struct CAN1sig_AccelerationForce_t{
  */
 
 // Comment: None
+struct CAN1_FloatExample2_t{
+    const uint32_t ID;
+    const bool is_extended;
+    const uint8_t DLC;
+    uint64_t raw;
+    const void (*send)(void);
+    const struct CAN1_FloatExample2_signals_t{
+        const struct{
+            const struct CAN1sig_DoubleExample_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_DoubleExample;
+
+    }signals;
+};
+// Comment: None
+struct CAN1_FloatExample_t{
+    const uint32_t ID;
+    const bool is_extended;
+    const uint8_t DLC;
+    uint64_t raw;
+    const void (*send)(void);
+    const struct CAN1_FloatExample_signals_t{
+        const struct{
+            const struct CAN1sig_SingleExample_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_SingleExample;
+
+        const struct{
+            const struct CAN1sig_SingleExample2_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_SingleExample2;
+
+    }signals;
+};
+// Comment: None
+struct CAN1_ABSdata_t{
+    const uint32_t ID;
+    const bool is_extended;
+    const uint8_t DLC;
+    uint64_t raw;
+    const void (*send)(void);
+    const uint32_t repetitions;
+    uint32_t repetitionsleft;
+    const struct CAN1_ABSdata_signals_t{
+        const struct{
+            const struct CAN1sig_CarSpeed_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_CarSpeed;
+
+        const struct{
+            const struct CAN1sig_GearLock_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_GearLock;
+
+        const struct{
+            const struct CAN1sig_Diagnostics_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_Diagnostics;
+
+        const struct{
+            const struct CAN1sig_AccelerationForce_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_AccelerationForce;
+
+    }signals;
+};
+// Comment: None
 struct CAN1_MultiplexExample2_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*send)(void);
+    const uint32_t repetitions;
+    uint32_t repetitionsleft;
     const struct CAN1_MultiplexExample2_signals_t{
         const struct{
             const struct CAN1sig_ExSignal7_t *signal;
@@ -582,7 +741,6 @@ struct CAN1_MultiplexExample_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*receive)(void);
     const struct CAN1_MultiplexExample_signals_t{
         const struct{
@@ -627,7 +785,6 @@ struct CAN1_Ignition_Info_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*receive)(void);
     const struct CAN1_Ignition_Info_signals_t{
         const struct{
@@ -639,23 +796,11 @@ struct CAN1_Ignition_Info_t{
     }signals;
 };
 // Comment: None
-struct CAN1_DiagResponse_Motor_t{
-    const uint32_t ID;
-    const bool is_extended;
-    const uint8_t DLC;
-    uint64_t raw;
-
-    const void (*send)(void);
-    const struct CAN1_DiagResponse_Motor_signals_t{
-    }signals;
-};
-// Comment: None
 struct CAN1_NM_Engine_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*send)(void);
     const struct CAN1_NM_Engine_signals_t{
         const struct{
@@ -672,9 +817,16 @@ struct CAN1_GearBoxInfo_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*send)(void);
+    const uint32_t repetitions;
+    uint32_t repetitionsleft;
     const struct CAN1_GearBoxInfo_signals_t{
+        const struct{
+            const struct CAN1sig_GearLock_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_GearLock;
+
         const struct{
             const struct CAN1sig_ShiftRequest_t *signal;
             const uint64_t startbit;
@@ -701,8 +853,9 @@ struct CAN1_EngineStatus_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*send)(void);
+    const uint32_t repetitions;
+    uint32_t repetitionsleft;
     const struct CAN1_EngineStatus_signals_t{
         const struct{
             const struct CAN1sig_Status_t *signal;
@@ -719,36 +872,14 @@ struct CAN1_EngineStatus_t{
     }signals;
 };
 // Comment: None
-struct CAN1_EngineDataIEEE_t{
-    const uint32_t ID;
-    const bool is_extended;
-    const uint8_t DLC;
-    uint64_t raw;
-
-    const void (*send)(void);
-    const struct CAN1_EngineDataIEEE_signals_t{
-        const struct{
-            const struct CAN1sig_EngSpeed_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }CAN1sig_EngSpeed;
-
-        const struct{
-            const struct CAN1sig_EngForce_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }CAN1sig_EngForce;
-
-    }signals;
-};
-// Comment: None
 struct CAN1_EngineData_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-
     const void (*send)(void);
+    const uint32_t repetitions;
+    uint32_t repetitionsleft;
     const struct CAN1_EngineData_signals_t{
         const struct{
             const struct CAN1sig_EngSpeed_t *signal;
@@ -785,41 +916,6 @@ struct CAN1_EngineData_t{
             const uint64_t startbit;
             const uint64_t mask;
         }CAN1sig_EngPower;
-
-    }signals;
-};
-// Comment: None
-struct CAN1_ABSdata_t{
-    const uint32_t ID;
-    const bool is_extended;
-    const uint8_t DLC;
-    uint64_t raw;
-
-    const void (*send)(void);
-    const struct CAN1_ABSdata_signals_t{
-        const struct{
-            const struct CAN1sig_CarSpeed_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }CAN1sig_CarSpeed;
-
-        const struct{
-            const struct CAN1sig_GearLock_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }CAN1sig_GearLock;
-
-        const struct{
-            const struct CAN1sig_Diagnostics_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }CAN1sig_Diagnostics;
-
-        const struct{
-            const struct CAN1sig_AccelerationForce_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }CAN1sig_AccelerationForce;
 
     }signals;
 };
