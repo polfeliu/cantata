@@ -39,17 +39,17 @@ VAL_TABLE_ Mux1 8 "Description for the value '0x8'" 7 "Description for the value
 
 
 BO_ 291 FloatExample2: 8 Engine
- SG_ DoubleExample : 0|64@1- (1,0) [0|0] "" Vector__XXX
+ SG_ DoubleExample : 0|64@1- (1,0) [-1.7E+308|1.7E+308] "" Vector__XXX
 
 BO_ 2348941054 FloatExample: 8 Engine
- SG_ SingleExample2 : 39|32@0- (1,0) [0|0] "" Vector__XXX
- SG_ SingleExample : 0|32@1- (1,0) [0|0] "" Vector__XXX
+ SG_ SingleExample2 : 39|32@0- (1,0) [-3.4E+038|3.4E+038] "" Vector__XXX
+ SG_ SingleExample : 0|32@1- (1,0) [-3.4E+038|3.4E+038] "" Vector__XXX
 
 BO_ 201 ABSdata: 6 Engine
- SG_ GearLock : 10|1@1+ (1,0) [0|0] "" Vector__XXX
- SG_ CarSpeed : 0|10@1+ (0.5,0) [0|300] "mph" Vector__XXX
- SG_ Diagnostics : 16|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ AccelerationForce : 32|16@1+ (1,-10000) [0|0] "N" Vector__XXX
+ SG_ GearLock : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ CarSpeed : 0|10@1+ (0.5,0) [0|511.5] "mph" Vector__XXX
+ SG_ Diagnostics : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ AccelerationForce : 32|16@1+ (1,-10000) [-10000|55535] "N" Vector__XXX
 
 BO_ 769 MultiplexExample2: 8 Engine
  SG_ ExSignal9 m0 : 16|8@1- (1,0) [-128|127] "" Vector__XXX
@@ -57,12 +57,12 @@ BO_ 769 MultiplexExample2: 8 Engine
  SG_ ExSignal7 M : 0|8@1- (1,0) [-128|127] "" Vector__XXX
 
 BO_ 768 MultiplexExample: 8 Gateway
- SG_ EXSignal6 m0 : 40|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ EXSignal5 m0 : 32|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ EXSignal4 m0 : 24|8@1- (1,0) [0|0] ""  Engine
- SG_ EXSignal3 m4 : 16|8@1- (1,0) [0|0] ""  Engine
- SG_ EXSignal2 m4M : 8|8@1- (1,0) [0|0] "" Vector__XXX
- SG_ EXSignal1 M : 0|8@1- (1,0) [0|0] "" Vector__XXX
+ SG_ EXSignal6 m0 : 40|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ EXSignal5 m0 : 32|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ EXSignal4 m0 : 24|8@1- (1,0) [-128|127] ""  Engine
+ SG_ EXSignal3 m4 : 16|8@1- (1,0) [-128|127] ""  Engine
+ SG_ EXSignal2 m4M : 8|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ EXSignal1 M : 0|8@1- (1,0) [-128|127] "" Vector__XXX
 
 BO_ 103 Ignition_Info: 2 Gateway
  SG_ StarterKey : 7|1@0+ (1,0) [0|1] ""  Engine
@@ -73,22 +73,22 @@ BO_ 1307 NM_Engine: 4 Engine
 BO_ 1306 NM_Gateway_PowerTrain: 4 Gateway
 
 BO_ 1020 GearBoxInfo: 1 Engine
- SG_ GearLock : 4|1@1+ (1,0) [0|0] "" Vector__XXX
- SG_ EcoMode : 6|2@1+ (1,0) [0|1] "" Vector__XXX
- SG_ ShiftRequest : 5|1@1+ (1,0) [0|0] "" Vector__XXX
- SG_ Gear : 2|3@0+ (1,0) [0|5] ""  Gateway
+ SG_ GearLock : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ EcoMode : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+ SG_ ShiftRequest : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Gear : 2|3@0+ (1,0) [0|7] ""  Gateway
 
 BO_ 101 EngineStatus: 1 Engine
- SG_ ErrorCode : 2|6@1+ (1,0) [0|0] "" Vector__XXX
- SG_ Status : 0|2@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ErrorCode : 2|6@1+ (1,0) [0|63] "" Vector__XXX
+ SG_ Status : 0|2@1+ (1,0) [0|3] "" Vector__XXX
 
 BO_ 100 EngineData: 8 Engine
  SG_ PetrolLevel : 24|8@1+ (1,0) [0|255] "l" Vector__XXX
- SG_ EngPower : 48|16@1+ (0.01,0) [0|150] "kW" Vector__XXX
- SG_ EngForce : 32|16@1+ (1,0) [0|0] "N" Vector__XXX
- SG_ IdleRunning : 23|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ EngPower : 48|16@1+ (0.01,0) [0|655.35] "kW" Vector__XXX
+ SG_ EngForce : 32|16@1+ (1,0) [0|65535] "N" Vector__XXX
+ SG_ IdleRunning : 23|1@1+ (1,0) [0|1] "" Vector__XXX
  SG_ EngTemp : 16|7@1+ (2,-50) [-50|204] "degC" Vector__XXX
- SG_ EngSpeed : 0|16@1+ (1,0) [0|8000] "rpm" Vector__XXX
+ SG_ EngSpeed : 0|16@1+ (1,0) [0|65535] "rpm" Vector__XXX
 
 
 

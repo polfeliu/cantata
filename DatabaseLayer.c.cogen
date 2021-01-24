@@ -627,6 +627,8 @@ for signame, sig in signals.items():
                     cog.out("""
 // GenSigSendType: IfActiveWithRepetition""")
                     IfActiveCheck(signame, signalparents[signame], repetitions=True)
+            else:
+                setRaw();
         else:
             setRaw();
 
@@ -707,6 +709,7 @@ def expandmultiplex(framename, item, mode="rx"):
     cog.outl("")
 
     for multiplexvalue in list(item[multiplexorname]):
+
         subitem = item[multiplexorname][multiplexvalue]
         if len(subitem) ==0: # no signal associated to this value
             pass
@@ -724,15 +727,14 @@ def expandmultiplex(framename, item, mode="rx"):
                     prefix, multiplexorname, multiplexvalue
                     ))
 
-
-            if type(subitem[0]) == str: # then it is a signal
-                for multiplexedsignalname in subitem:
+            for multiplexedsignal in subitem:
+                if type(multiplexedsignal) == str: # then it is a signal (and the variable is also the name)
                     if mode=='rx':
-                        unpacksignal(framename=framename, signalname=multiplexedsignalname, signal=frame['signals'][multiplexedsignalname])
+                        unpacksignal(framename=framename, signalname=multiplexedsignal, signal=frame['signals'][multiplexedsignal])
                     else: #tx
-                        packsignal(framename=framename, signalname=multiplexedsignalname, signal=frame['signals'][multiplexedsignalname])
-            else:
-                expandmultiplex(framename, subitem[0], mode=mode)
+                        packsignal(framename=framename, signalname=multiplexedsignal, signal=frame['signals'][multiplexedsignal])
+                else:
+                    expandmultiplex(framename, subitem[0], mode=mode)
 
 
     cog.out("""

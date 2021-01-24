@@ -598,7 +598,5 @@ if __name__ == '__main__':
     #can.process()
 
     can.genFiles(srcfile=src, hdrfile=hdr);
-    shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
-    shutil.copyfile(r'STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')
-
-    #pprint(can.signalparents)
+    #shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
+    #shutil.copyfile(r'STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')

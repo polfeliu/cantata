@@ -492,7 +492,7 @@ struct CAN1sig_CarSpeed_t CAN1sig_CarSpeed = {
     .initial_value = 0,
     .factor = 0.5,
     .offset = 0,
-    .min = 0.0,
+    .min = 0,
     .max = 511.5,
     .raw = 0,
     .getValue = CAN1sig_CarSpeed_getValue,
@@ -870,7 +870,7 @@ struct CAN1sig_EngPower_t CAN1sig_EngPower = {
     .initial_value = 0,
     .factor = 0.01,
     .offset = 0,
-    .min = 0.0,
+    .min = 0,
     .max = 655.35,
     .raw = 0,
     .getValue = CAN1sig_EngPower_getValue,
@@ -895,6 +895,7 @@ static bool CAN1sig_DoubleExample_setValue(double val){
     return !saturation;
 }
 static void CAN1sig_DoubleExample_setRaw(double raw){
+    CAN1sig_DoubleExample.raw = raw;
 }
 
 // SingleExample
@@ -907,6 +908,7 @@ static bool CAN1sig_SingleExample_setValue(single val){
     return !saturation;
 }
 static void CAN1sig_SingleExample_setRaw(single raw){
+    CAN1sig_SingleExample.raw = raw;
 }
 
 // SingleExample2
@@ -919,6 +921,7 @@ static bool CAN1sig_SingleExample2_setValue(single val){
     return !saturation;
 }
 static void CAN1sig_SingleExample2_setRaw(single raw){
+    CAN1sig_SingleExample2.raw = raw;
 }
 
 // CarSpeed
@@ -939,6 +942,7 @@ static bool CAN1sig_CarSpeed_setValue(double val){
     return !saturation;
 }
 static void CAN1sig_CarSpeed_setRaw(uint16_t raw){
+    CAN1sig_CarSpeed.raw = raw;
 }
 
 // GearLock
@@ -951,6 +955,7 @@ static bool CAN1sig_GearLock_setValue(CAN1sig_GearLockVT_t val){
     return !saturation;
 }
 static void CAN1sig_GearLock_setRaw(bool raw){
+    CAN1sig_GearLock.raw = raw;
 }
 
 // Diagnostics
@@ -963,6 +968,7 @@ static bool CAN1sig_Diagnostics_setValue(uint8_t val){
     return !saturation;
 }
 static void CAN1sig_Diagnostics_setRaw(uint8_t raw){
+    CAN1sig_Diagnostics.raw = raw;
 }
 
 // AccelerationForce
@@ -1002,6 +1008,7 @@ static bool CAN1sig_ExSignal7_setValue(int8_t val){
     return !saturation;
 }
 static void CAN1sig_ExSignal7_setRaw(int8_t raw){
+    CAN1sig_ExSignal7.raw = raw;
 }
 
 // ExSignal8
@@ -1014,6 +1021,7 @@ static bool CAN1sig_ExSignal8_setValue(int8_t val){
     return !saturation;
 }
 static void CAN1sig_ExSignal8_setRaw(int8_t raw){
+    CAN1sig_ExSignal8.raw = raw;
 }
 
 // ExSignal9
@@ -1074,6 +1082,7 @@ static bool CAN1sig_SleepInd_setValue(bool val){
     return !saturation;
 }
 static void CAN1sig_SleepInd_setRaw(bool raw){
+    CAN1sig_SleepInd.raw = raw;
 }
 
 // ShiftRequest
@@ -1086,6 +1095,7 @@ static bool CAN1sig_ShiftRequest_setValue(CAN1sig_ShiftRequestVT_t val){
     return !saturation;
 }
 static void CAN1sig_ShiftRequest_setRaw(bool raw){
+    CAN1sig_ShiftRequest.raw = raw;
 }
 
 // Gear
@@ -1098,6 +1108,7 @@ static bool CAN1sig_Gear_setValue(CAN1sig_GearVT_t val){
     return !saturation;
 }
 static void CAN1sig_Gear_setRaw(uint8_t raw){
+    CAN1sig_Gear.raw = raw;
 }
 
 // EcoMode
@@ -1110,6 +1121,7 @@ static bool CAN1sig_EcoMode_setValue(uint8_t val){
     return !saturation;
 }
 static void CAN1sig_EcoMode_setRaw(uint8_t raw){
+    CAN1sig_EcoMode.raw = raw;
 }
 
 // Status
@@ -1216,6 +1228,7 @@ static bool CAN1sig_PetrolLevel_setValue(uint8_t val){
     return !saturation;
 }
 static void CAN1sig_PetrolLevel_setRaw(uint8_t raw){
+    CAN1sig_PetrolLevel.raw = raw;
 }
 
 // EngForce
@@ -1228,6 +1241,7 @@ static bool CAN1sig_EngForce_setValue(uint16_t val){
     return !saturation;
 }
 static void CAN1sig_EngForce_setRaw(uint16_t raw){
+    CAN1sig_EngForce.raw = raw;
 }
 
 // EngPower
@@ -1248,6 +1262,7 @@ static bool CAN1sig_EngPower_setValue(double val){
     return !saturation;
 }
 static void CAN1sig_EngPower_setRaw(uint16_t raw){
+    CAN1sig_EngPower.raw = raw;
 }
 
 /*
@@ -1339,6 +1354,7 @@ static void CAN1_MultiplexExample_receive(){
     if(CAN1sig_EXSignal2.raw == 0){
     CAN1sig_EXSignal4.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.mask;
     }
+    CAN1sig_EXSignal3.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.mask;
     }
     
 };

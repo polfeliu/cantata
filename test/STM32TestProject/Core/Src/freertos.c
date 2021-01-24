@@ -124,6 +124,7 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 
+
 enum{
 	Cyclic,
 	OnWrite,
@@ -132,6 +133,8 @@ enum{
 	OnChangeWithRepetitions,
 	IfActive,
 	IfActiveWithRepetitions,
+	TransmitTesting,
+	ReceiveTesting
 } InteractionLayerDemo;
 
 
@@ -143,8 +146,10 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
 	GPIO_PinState button_last;
 	GPIO_PinState button = button = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);;
+	bool error = false;
+	uint64_t expectedmsg;
 
-	InteractionLayerDemo = Cyclic; // Change to try the different modes
+	InteractionLayerDemo = TransmitTesting; // Change to try the different modes
 
 	if(InteractionLayerDemo != Cyclic){
 		// for simplicity lets disable the cyclic task
@@ -188,6 +193,208 @@ void StartDefaultTask(void *argument)
 			}else{
 				CAN1sig_ErrorCode.setValue(1);
 			}
+			break;
+
+		case TransmitTesting:
+			error = false;
+
+			//// ABSData
+			CAN1sig_AccelerationForce.setValue(48009);
+			CAN1sig_Diagnostics.setValue(138);
+			CAN1sig_GearLock.setValue(0);
+			CAN1sig_CarSpeed.setValue(115);
+
+			expectedmsg = 0x0000e299008a00e6;
+			CAN1_ABSdata.send();
+			error |= (CAN1_ABSdata.raw != expectedmsg);
+
+
+			CAN1sig_AccelerationForce.setValue(-4215);
+			CAN1sig_Diagnostics.setValue(167);
+			CAN1sig_GearLock.setValue(1);
+			CAN1sig_CarSpeed.setValue(239);
+
+			expectedmsg = 0x0000169900a705de;
+			CAN1_ABSdata.send();
+			error |= (CAN1_ABSdata.raw != expectedmsg);
+
+			//// EngineData
+			CAN1sig_EngSpeed.setValue(57288);
+			CAN1sig_EngTemp.setValue(-13);
+			CAN1sig_IdleRunning.setValue(0);
+			CAN1sig_EngForce.setValue(12898);
+			CAN1sig_EngPower.setValue(216);
+			CAN1sig_PetrolLevel.setValue(217);
+
+			expectedmsg = 0x54603262d912dfc8;
+			CAN1_EngineData.send();
+			error |= (CAN1_EngineData.raw != expectedmsg);
+
+			CAN1sig_EngSpeed.setValue(31189);
+			CAN1sig_EngTemp.setValue(27);
+			CAN1sig_IdleRunning.setValue(1);
+			CAN1sig_EngForce.setValue(42039);
+			CAN1sig_EngPower.setValue(375);
+			CAN1sig_PetrolLevel.setValue(56);
+
+			expectedmsg = 0x927ca43738a679d5;
+			CAN1_EngineData.send();
+			error |= (CAN1_EngineData.raw != expectedmsg);
+
+			//// EngineStatus
+			CAN1sig_Status.setValue(2);
+			CAN1sig_ErrorCode.setValue(32);
+
+			expectedmsg = 0x0000000000000082;
+			CAN1_EngineStatus.send();
+			error |= (CAN1_EngineStatus.raw != expectedmsg);
+
+			CAN1sig_Status.setValue(0);
+			CAN1sig_ErrorCode.setValue(29);
+
+			expectedmsg = 0x0000000000000074;
+			CAN1_EngineStatus.send();
+			error |= (CAN1_EngineStatus.raw != expectedmsg);
+
+
+			//// GearboxInfo
+			CAN1sig_Gear.setValue(6);
+			CAN1sig_ShiftRequest.setValue(0);
+			CAN1sig_EcoMode.setValue(1);
+			CAN1sig_GearLock.setValue(0);
+
+			expectedmsg = 0x0000000000000043;
+			CAN1_GearBoxInfo.send();
+			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+
+			CAN1sig_Gear.setValue(1);
+			CAN1sig_ShiftRequest.setValue(0);
+			CAN1sig_EcoMode.setValue(1);
+			CAN1sig_GearLock.setValue(0);
+
+			expectedmsg = 0x0000000000000044;
+			CAN1_GearBoxInfo.send();
+			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+
+			CAN1sig_Gear.setValue(3);
+			CAN1sig_ShiftRequest.setValue(0);
+			CAN1sig_EcoMode.setValue(1);
+			CAN1sig_GearLock.setValue(0);
+
+			expectedmsg = 0x0000000000000046;
+			CAN1_GearBoxInfo.send();
+			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+
+			CAN1sig_Gear.setValue(3);
+			CAN1sig_ShiftRequest.setValue(1);
+			CAN1sig_EcoMode.setValue(0);
+			CAN1sig_GearLock.setValue(1);
+
+			expectedmsg = 0x0000000000000036;
+			CAN1_GearBoxInfo.send();
+			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+
+
+			//// MultiplexExample2
+			CAN1sig_ExSignal7.setValue(0);
+			CAN1sig_ExSignal8.setValue(0);
+			CAN1sig_ExSignal9.setValue(37);
+
+			expectedmsg = 0x0000000000250000;
+			CAN1_MultiplexExample2.send();
+			error |= (CAN1_MultiplexExample2.raw != expectedmsg);
+
+			CAN1sig_ExSignal7.setValue(1);
+			CAN1sig_ExSignal8.setValue(0);
+			CAN1sig_ExSignal9.setValue(0);
+
+			expectedmsg = 0x0000000000000001;
+			CAN1_MultiplexExample2.send();
+			error |= (CAN1_MultiplexExample2.raw != expectedmsg);
+
+			//// NM_Engine
+			CAN1sig_SleepInd.setValue(0);
+
+			expectedmsg = 0x0000000000000000;
+			CAN1_NM_Engine.send();
+			error |= (CAN1_NM_Engine.raw != expectedmsg);
+
+
+			CAN1sig_SleepInd.setValue(1);
+
+			expectedmsg = 0x0000000000001000;
+			CAN1_NM_Engine.send();
+			error |= (CAN1_NM_Engine.raw != expectedmsg);
+
+			//// FloatExample
+
+			CAN1sig_SingleExample.setValue(-2.138737678527832);
+			CAN1sig_SingleExample2.setValue(-8.984071263822772e-28);
+
+			float qwer = 1234.5;
+			uint32_t asdf;
+			asdf = (uint32_t) CAN1sig_SingleExample.raw;
+		    //asdf = (uint32_t) ((uint64_t) CAN1sig_SingleExample.raw & CAN1_FloatExample.signals.CAN1sig_SingleExample.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample.startbit;
+
+
+
+			expectedmsg = 0xb95b8e92c008e114;
+			CAN1_FloatExample.send();
+			error |= (CAN1_FloatExample.raw != expectedmsg);
+
+			//// FloatExample2
+
+			CAN1sig_DoubleExample.setValue(1.22832399570192E+85);
+			CAN1_FloatExample2.send();
+			error |= (CAN1_FloatExample2.raw != expectedmsg);
+
+
+			break;
+
+		case ReceiveTesting:
+			error = false;
+
+
+			//// Ignition_Info
+			CAN1_Ignition_Info.raw = 0x0000000000001784;
+			CAN1_Ignition_Info.receive();
+
+			error |= (CAN1sig_StarterKey.getValue() != 1);
+
+			CAN1_Ignition_Info.raw = 0x0000000000009d31;
+			CAN1_Ignition_Info.receive();
+
+			error |= (CAN1sig_StarterKey.getValue() != 0);
+
+
+			//// MultiplexExample
+			CAN1_MultiplexExample.raw = 0xe797a6e9c062d900;
+			CAN1_MultiplexExample.receive();
+
+			error |= (CAN1sig_EXSignal1.getValue() != 0);
+			//error |= (CAN1sig_EXSignal5.getValue() != -23); Signal not declared as RX
+
+			CAN1_MultiplexExample.raw = 0xb1e1e4eb60af8201;
+			CAN1_MultiplexExample.receive();
+
+			error |= (CAN1sig_EXSignal1.getValue() != 1);
+
+			CAN1_MultiplexExample.raw = 0x7e0868676c2b0004;
+			CAN1_MultiplexExample.receive();
+
+			error |= (CAN1sig_EXSignal1.getValue() != 4);
+			error |= (CAN1sig_EXSignal2.getValue() != 0);
+			error |= (CAN1sig_EXSignal3.getValue() != 43);
+			error |= (CAN1sig_EXSignal4.getValue() != 108);
+			//error |= (CAN1sig_EXSignal6.getValue() != 104); Signal not declared as RX
+
+			CAN1_MultiplexExample.raw = 0xe74aa821e19e0104;
+			CAN1_MultiplexExample.receive();
+
+			error |= (CAN1sig_EXSignal1.getValue() != 4);
+			error |= (CAN1sig_EXSignal2.getValue() != 1);
+			error |= (CAN1sig_EXSignal3.getValue() != -98);
+
 			break;
 		default:
 			break;
