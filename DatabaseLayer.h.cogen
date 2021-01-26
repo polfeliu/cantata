@@ -1,3 +1,14 @@
+/**
+ ******************************************************************************
+ * @details This file was created with the CANDatabaseTool
+ * @author Pol Feliu Cuberes
+ * @link https://github.com/polfeliu/CANDatabaseLayer
+ * @section License
+ * This file was automatically generated and is subject to the license of this project
+ * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ ******************************************************************************
+ */
+
 #ifndef __db_H
 #define __db_H
 #ifdef __cplusplus

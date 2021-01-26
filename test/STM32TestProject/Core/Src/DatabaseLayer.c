@@ -1,5 +1,14 @@
+/**
+ ******************************************************************************
+ * @details This file was created with the CANDatabaseTool
+ * @author Pol Feliu Cuberes
+ * @link https://github.com/polfeliu/CANDatabaseLayer
+ * @section License
+ * This file was automatically generated and is subject to the license of this project
+ * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ ******************************************************************************
+ */
 #include "DatabaseLayer.h"
-
 #include "STM32CANCallbacks.h" 
 
 uint64_t reverseBits(uint64_t num, uint8_t NO_OF_BITS)
@@ -17,6 +26,39 @@ uint64_t reverseBits(uint64_t num, uint8_t NO_OF_BITS)
     }
 
     return reverse_num;
+}
+
+uint32_t SingleToUint32(single s){
+    union SingleUint32_u{
+        single s;
+        uint32_t u;
+    }SingleUint32 = { .s = s};
+
+    return SingleUint32.u;
+}
+single Uint32ToSingle(uint32_t u){
+    union SingleUint32_u{
+        single s;
+        uint32_t u;
+    }SingleUint32 = { .u = u};
+
+    return SingleUint32.s;
+}
+
+uint64_t DoubleToUint64(double d){
+    union DoubleUint64_u{
+        double d;
+        uint64_t u;
+    }DoubleUint64 = { .d = d};
+    return DoubleUint64.u;
+}
+
+double Uint64ToDouble(uint64_t u){
+    union DoubleUint64_u{
+        double d;
+        uint64_t u;
+    }DoubleUint64 = { .u = u};
+    return DoubleUint64.d;
 }
 
 
@@ -335,6 +377,16 @@ void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t 
         //invalid standard identifier
     }
 
+    else if((ID==CAN1_FloatExample4.ID) & (is_extended==CAN1_FloatExample4.is_extended)){
+        CAN1_FloatExample4.raw = data;
+        CAN1_FloatExample4.receive();
+    }
+
+    else if((ID==CAN1_FloatExample3.ID) & (is_extended==CAN1_FloatExample3.is_extended)){
+        CAN1_FloatExample3.raw = data;
+        CAN1_FloatExample3.receive();
+    }
+
     else if((ID==CAN1_MultiplexExample.ID) & (is_extended==CAN1_MultiplexExample.is_extended)){
         CAN1_MultiplexExample.raw = data;
         CAN1_MultiplexExample.receive();
@@ -355,6 +407,8 @@ void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t 
  * Signal getValue, setValue and setRaw method prototypes
  */
 
+static double CAN1sig_DoubleExample2_getValue();
+static single CAN1sig_SingleExample3_getValue();
 static double CAN1sig_DoubleExample_getValue();
 static bool CAN1sig_DoubleExample_setValue(double);
 static void CAN1sig_DoubleExample_setRaw(double);
@@ -433,6 +487,34 @@ static void CAN1sig_EngPower_setRaw(uint16_t);
  */
 
 
+struct CAN1sig_DoubleExample2_t CAN1sig_DoubleExample2 = {
+    .length = 64,
+    .byte_order = big_endian,
+    .value_type = Tdouble,
+    .unit = "",
+    .initial_value = 0,
+    .factor = 1,
+    .offset = 0,
+    .min = -1.7e+308,
+    .max = 1.7e+308,
+    .raw = 0,
+    .getValue = CAN1sig_DoubleExample2_getValue
+};
+    
+struct CAN1sig_SingleExample3_t CAN1sig_SingleExample3 = {
+    .length = 32,
+    .byte_order = big_endian,
+    .value_type = Tsingle,
+    .unit = "",
+    .initial_value = 0,
+    .factor = 1,
+    .offset = 0,
+    .min = -3.4e+38,
+    .max = 3.4e+38,
+    .raw = 0,
+    .getValue = CAN1sig_SingleExample3_getValue
+};
+    
 struct CAN1sig_DoubleExample_t CAN1sig_DoubleExample = {
     .length = 64,
     .byte_order = little_endian,
@@ -452,7 +534,7 @@ struct CAN1sig_DoubleExample_t CAN1sig_DoubleExample = {
     
 struct CAN1sig_SingleExample_t CAN1sig_SingleExample = {
     .length = 32,
-    .byte_order = little_endian,
+    .byte_order = big_endian,
     .value_type = Tsingle,
     .unit = "",
     .initial_value = 0,
@@ -885,6 +967,18 @@ struct CAN1sig_EngPower_t CAN1sig_EngPower = {
  */
 
 
+// DoubleExample2
+static double CAN1sig_DoubleExample2_getValue(){
+     return CAN1sig_DoubleExample2.raw;
+}
+
+
+// SingleExample3
+static single CAN1sig_SingleExample3_getValue(){
+     return CAN1sig_SingleExample3.raw;
+}
+
+
 // DoubleExample
 static double CAN1sig_DoubleExample_getValue(){
      return CAN1sig_DoubleExample.raw;
@@ -1270,10 +1364,20 @@ static void CAN1sig_EngPower_setRaw(uint16_t raw){
  */
 
 
+static void CAN1_FloatExample4_receive(){
+
+CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits((CAN1_FloatExample4.raw >> CAN1_FloatExample4.signals.CAN1sig_DoubleExample2.startbit) & CAN1_FloatExample4.signals.CAN1sig_DoubleExample2.mask, CAN1sig_DoubleExample2.length));
+    
+};
+static void CAN1_FloatExample3_receive(){
+
+CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits((CAN1_FloatExample3.raw >> CAN1_FloatExample3.signals.CAN1sig_SingleExample3.startbit) & CAN1_FloatExample3.signals.CAN1sig_SingleExample3.mask, CAN1sig_SingleExample3.length));
+    
+};
 static void CAN1_FloatExample2_send(){
     CAN1_FloatExample2.raw = 0;
 
-    CAN1_FloatExample2.raw |= (uint64_t) ((uint64_t) CAN1sig_DoubleExample.raw & CAN1_FloatExample2.signals.CAN1sig_DoubleExample.mask) << CAN1_FloatExample2.signals.CAN1sig_DoubleExample.startbit;
+    CAN1_FloatExample2.raw |= (uint64_t) ((uint64_t) DoubleToUint64(CAN1sig_DoubleExample.raw) & CAN1_FloatExample2.signals.CAN1sig_DoubleExample.mask) << CAN1_FloatExample2.signals.CAN1sig_DoubleExample.startbit;
     CAN1sig_DoubleExample.sent = true;
 
     CAN1_SendCallback(
@@ -1287,9 +1391,9 @@ static void CAN1_FloatExample2_send(){
 static void CAN1_FloatExample_send(){
     CAN1_FloatExample.raw = 0;
 
-    CAN1_FloatExample.raw |= (uint64_t) ((uint64_t) CAN1sig_SingleExample.raw & CAN1_FloatExample.signals.CAN1sig_SingleExample.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample.startbit;
+    CAN1_FloatExample.raw |= (uint64_t) ((uint64_t) reverseBits(SingleToUint32(CAN1sig_SingleExample.raw),  CAN1sig_SingleExample.length) & CAN1_FloatExample.signals.CAN1sig_SingleExample.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample.startbit;
     CAN1sig_SingleExample.sent = true;
-    CAN1_FloatExample.raw |= (uint64_t) ((uint64_t) reverseBits(CAN1sig_SingleExample2.raw,  CAN1sig_SingleExample2.length) & CAN1_FloatExample.signals.CAN1sig_SingleExample2.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample2.startbit;
+    CAN1_FloatExample.raw |= (uint64_t) ((uint64_t) reverseBits(SingleToUint32(CAN1sig_SingleExample2.raw),  CAN1sig_SingleExample2.length) & CAN1_FloatExample.signals.CAN1sig_SingleExample2.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample2.startbit;
     CAN1sig_SingleExample2.sent = true;
 
     CAN1_SendCallback(
@@ -1346,21 +1450,21 @@ static void CAN1_MultiplexExample2_send(){
 
 static void CAN1_MultiplexExample_receive(){
 
-    CAN1sig_EXSignal1.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal1.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal1.mask;
+CAN1sig_EXSignal1.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal1.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal1.mask;
 
     if(CAN1sig_EXSignal1.raw == 4){
-    CAN1sig_EXSignal2.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal2.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal2.mask;
+CAN1sig_EXSignal2.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal2.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal2.mask;
 
     if(CAN1sig_EXSignal2.raw == 0){
-    CAN1sig_EXSignal4.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.mask;
+CAN1sig_EXSignal4.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.mask;
     }
-    CAN1sig_EXSignal3.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.mask;
+CAN1sig_EXSignal3.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.mask;
     }
     
 };
 static void CAN1_Ignition_Info_receive(){
 
-    CAN1sig_StarterKey.raw = reverseBits((CAN1_Ignition_Info.raw >> CAN1_Ignition_Info.signals.CAN1sig_StarterKey.startbit) & CAN1_Ignition_Info.signals.CAN1sig_StarterKey.mask, CAN1sig_StarterKey.length);
+CAN1sig_StarterKey.raw = reverseBits((CAN1_Ignition_Info.raw >> CAN1_Ignition_Info.signals.CAN1sig_StarterKey.startbit) & CAN1_Ignition_Info.signals.CAN1sig_StarterKey.mask, CAN1sig_StarterKey.length);
     
 };
 static void CAN1_NM_Engine_send(){
@@ -1444,6 +1548,38 @@ static void CAN1_EngineData_send(){
 
 
 // Comment: None
+struct CAN1_FloatExample4_t CAN1_FloatExample4 = {
+    .ID = 0xb1, //dec: 177
+    .is_extended = false,
+    .DLC = 8,
+    .raw = 0,
+    .receive = CAN1_FloatExample4_receive,
+    .signals = {
+        .CAN1sig_DoubleExample2 = {
+            .signal = &CAN1sig_DoubleExample2,
+            .startbit = -48,
+            .mask = 0b1111111111111111111111111111111111111111111111111111111111111111
+        },
+        
+    }
+};
+// Comment: None
+struct CAN1_FloatExample3_t CAN1_FloatExample3 = {
+    .ID = 0x132, //dec: 306
+    .is_extended = false,
+    .DLC = 8,
+    .raw = 0,
+    .receive = CAN1_FloatExample3_receive,
+    .signals = {
+        .CAN1sig_SingleExample3 = {
+            .signal = &CAN1sig_SingleExample3,
+            .startbit = 0,
+            .mask = 0b11111111111111111111111111111111
+        },
+        
+    }
+};
+// Comment: None
 struct CAN1_FloatExample2_t CAN1_FloatExample2 = {
     .ID = 0x123, //dec: 291
     .is_extended = false,
@@ -1475,7 +1611,7 @@ struct CAN1_FloatExample_t CAN1_FloatExample = {
         
         .CAN1sig_SingleExample2 = {
             .signal = &CAN1sig_SingleExample2,
-            .startbit = 8,
+            .startbit = 32,
             .mask = 0b11111111111111111111111111111111
         },
         

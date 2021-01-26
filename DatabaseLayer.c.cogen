@@ -1,5 +1,14 @@
+/**
+ ******************************************************************************
+ * @details This file was created with the CANDatabaseTool
+ * @author Pol Feliu Cuberes
+ * @link https://github.com/polfeliu/CANDatabaseLayer
+ * @section License
+ * This file was automatically generated and is subject to the license of this project
+ * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ ******************************************************************************
+ */
 #include "DatabaseLayer.h"
-
 /*[[[cog
 import cog
 if settings['CallbackLib'] is not None:
@@ -22,6 +31,39 @@ uint64_t reverseBits(uint64_t num, uint8_t NO_OF_BITS)
     }
 
     return reverse_num;
+}
+
+uint32_t SingleToUint32(single s){
+    union SingleUint32_u{
+        single s;
+        uint32_t u;
+    }SingleUint32 = { .s = s};
+
+    return SingleUint32.u;
+}
+single Uint32ToSingle(uint32_t u){
+    union SingleUint32_u{
+        single s;
+        uint32_t u;
+    }SingleUint32 = { .u = u};
+
+    return SingleUint32.s;
+}
+
+uint64_t DoubleToUint64(double d){
+    union DoubleUint64_u{
+        double d;
+        uint64_t u;
+    }DoubleUint64 = { .d = d};
+    return DoubleUint64.u;
+}
+
+double Uint64ToDouble(uint64_t u){
+    union DoubleUint64_u{
+        double d;
+        uint64_t u;
+    }DoubleUint64 = { .u = u};
+    return DoubleUint64.d;
 }
 
 /*[[[cog
@@ -647,46 +689,47 @@ import cog
 def unpacksignal(framename, signalname, signal): 
     
     # signalraw = (rawmessage >> startbit) & mask
-
-    prereversal = """(%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask""" % (
+    raw = """(%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask""" % (
         prefix,framename,
         prefix,framename,prefix,signalname, 
         prefix,framename,prefix,signalname
     )
     
+
+    if signal["byte_order"] == "big_endian":
+        raw = "reverseBits(%s, %ssig_%s.length)" % (raw, prefix,signalname)
+
+
+    if signal['value_type'] == "double":
+        raw = "Uint64ToDouble(%s)" % raw
+    elif signal['value_type'] == "single":
+        raw = "Uint32ToSingle(%s)" % raw
     
-    if signal["byte_order"] == "little_endian":
-        cog.out(
-    """
-    %ssig_%s.raw = %s;"""
-        % (
-            prefix,signalname, prereversal
-        ));
-    else: #big endian
-        cog.out(
-    """
-    %ssig_%s.raw = reverseBits(%s, %ssig_%s.length);"""
-        % (
-            prefix,signalname, prereversal, 
-            prefix,signalname,
-        ));
+    cog.out("""
+%ssig_%s.raw = %s;""" % (prefix,signalname, raw));
 
 
 def packsignal(framename, signalname, signal):
+   
+    raw = "%ssig_%s.raw" % (prefix,signalname);
+
+    if signal['value_type'] == "double":
+        raw = "DoubleToUint64(%s)" %(raw)
+    elif signal['value_type'] == "single":
+        raw = "SingleToUint32(%s)" %(raw)
+
+
+    if signal["byte_order"] == "big_endian":
+        raw = "reverseBits(%s,  %ssig_%s.length)" % (raw,prefix,signalname)
+
+
     # rawmessage |= ((uint64_t)signalraw&mask) << startbit
-    if signal["byte_order"] == "little_endian":
-        postreversal = "%ssig_%s.raw" % (prefix,signalname)
-    else:
-        postreversal = "reverseBits(%ssig_%s.raw,  %ssig_%s.length)" % (
-            prefix,signalname,
-            prefix,signalname
-        )
     cog.out(
 """
     %s_%s.raw |= (uint64_t) ((uint64_t) %s & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
         % (
              prefix, framename,
-             postreversal,
+             raw,
              prefix,framename,prefix,signalname, 
              prefix,framename,prefix,signalname
         ));

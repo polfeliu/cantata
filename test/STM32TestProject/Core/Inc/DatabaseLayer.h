@@ -1,3 +1,14 @@
+/**
+ ******************************************************************************
+ * @details This file was created with the CANDatabaseTool
+ * @author Pol Feliu Cuberes
+ * @link https://github.com/polfeliu/CANDatabaseLayer
+ * @section License
+ * This file was automatically generated and is subject to the license of this project
+ * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ ******************************************************************************
+ */
+
 #ifndef __db_H
 #define __db_H
 #ifdef __cplusplus
@@ -24,12 +35,12 @@ void CAN1_InteractionLayerStart(void);
  * CAN Filters: CAN Filters filter and mask
  */
 
-// PassRatio: 67%  // Messages that this ECU Reads
-// MatchedRatio: 67%  // Messages that the Filters lets pass
+// PassRatio: 80%  // Messages that this ECU Reads
+// MatchedRatio: 80%  // Messages that the Filters lets pass
 // Efficiency: 100%  // Effiency of the filter (passRation/matchedRatio)
         
-#define CAN1_StandardFilter   0b01100000000
-#define CAN1_StandardMask     0b10010011000
+#define CAN1_StandardFilter   0b00010110001
+#define CAN1_StandardMask     0b10000001000
 #define CAN1_ExtendedFilter   0b00000000000000000000000000000
 #define CAN1_ExtendedMask     0b11111111111111111111111111111
  
@@ -130,6 +141,8 @@ typedef enum {
  * Export message structs
  */
 
+struct CAN1_FloatExample4_t CAN1_FloatExample4;
+struct CAN1_FloatExample3_t CAN1_FloatExample3;
 struct CAN1_FloatExample2_t CAN1_FloatExample2;
 struct CAN1_FloatExample_t CAN1_FloatExample;
 struct CAN1_ABSdata_t CAN1_ABSdata;
@@ -145,6 +158,8 @@ struct CAN1_EngineData_t CAN1_EngineData;
  * Export signal structs
  */
 
+struct CAN1sig_DoubleExample2_t CAN1sig_DoubleExample2;
+struct CAN1sig_SingleExample3_t CAN1sig_SingleExample3;
 struct CAN1sig_DoubleExample_t CAN1sig_DoubleExample;
 struct CAN1sig_SingleExample_t CAN1sig_SingleExample;
 struct CAN1sig_SingleExample2_t CAN1sig_SingleExample2;
@@ -176,6 +191,34 @@ struct CAN1sig_EngPower_t CAN1sig_EngPower;
 /*
  * Define types of the signal structs
  */
+
+struct CAN1sig_DoubleExample2_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const double initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    double raw;
+    const double (*getValue)(void);
+};
+
+struct CAN1sig_SingleExample3_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const single initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    single raw;
+    const single (*getValue)(void);
+};
 
 struct CAN1sig_DoubleExample_t{
     const uint8_t length;
@@ -627,6 +670,38 @@ struct CAN1sig_EngPower_t{
  * Define types of the message structs
  */
 
+// Comment: None
+struct CAN1_FloatExample4_t{
+    const uint32_t ID;
+    const bool is_extended;
+    const uint8_t DLC;
+    uint64_t raw;
+    const void (*receive)(void);
+    const struct CAN1_FloatExample4_signals_t{
+        const struct{
+            const struct CAN1sig_DoubleExample2_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_DoubleExample2;
+
+    }signals;
+};
+// Comment: None
+struct CAN1_FloatExample3_t{
+    const uint32_t ID;
+    const bool is_extended;
+    const uint8_t DLC;
+    uint64_t raw;
+    const void (*receive)(void);
+    const struct CAN1_FloatExample3_signals_t{
+        const struct{
+            const struct CAN1sig_SingleExample3_t *signal;
+            const uint64_t startbit;
+            const uint64_t mask;
+        }CAN1sig_SingleExample3;
+
+    }signals;
+};
 // Comment: None
 struct CAN1_FloatExample2_t{
     const uint32_t ID;

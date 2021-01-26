@@ -126,6 +126,7 @@ void MX_FREERTOS_Init(void) {
 
 
 enum{
+	Off,
 	Cyclic,
 	OnWrite,
 	OnWriteWithRepetitions,
@@ -149,7 +150,7 @@ void StartDefaultTask(void *argument)
 	bool error = false;
 	uint64_t expectedmsg;
 
-	InteractionLayerDemo = TransmitTesting; // Change to try the different modes
+	InteractionLayerDemo = OnChange; // Change to try the different modes
 
 	if(InteractionLayerDemo != Cyclic){
 		// for simplicity lets disable the cyclic task
@@ -158,12 +159,15 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    vTaskDelay(pdMS_TO_TICKS(50));
+    vTaskDelay(pdMS_TO_TICKS(100));
 
     button_last = button;
     button = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);
 
     switch (InteractionLayerDemo) {
+    	case Cyclic:
+    		CAN1sig_SleepInd.setValue(1);
+    		break;
 		case OnWrite:
 			if(button != button_last){
 				CAN1sig_EngSpeed.setValue(1);
@@ -328,23 +332,18 @@ void StartDefaultTask(void *argument)
 
 			//// FloatExample
 
-			CAN1sig_SingleExample.setValue(-2.138737678527832);
-			CAN1sig_SingleExample2.setValue(-8.984071263822772e-28);
+			CAN1sig_SingleExample.setValue(1234.1234);
+			CAN1sig_SingleExample2.setValue(4321.4312);
 
-			float qwer = 1234.5;
-			uint32_t asdf;
-			asdf = (uint32_t) CAN1sig_SingleExample.raw;
-		    //asdf = (uint32_t) ((uint64_t) CAN1sig_SingleExample.raw & CAN1_FloatExample.signals.CAN1sig_SingleExample.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample.startbit;
-
-
-
-			expectedmsg = 0xb95b8e92c008e114;
+			expectedmsg = 0;// TODO
 			CAN1_FloatExample.send();
+
 			error |= (CAN1_FloatExample.raw != expectedmsg);
 
 			//// FloatExample2
+			CAN1sig_DoubleExample.setValue(4567.4567);
 
-			CAN1sig_DoubleExample.setValue(1.22832399570192E+85);
+			expectedmsg = 0;// TODO
 			CAN1_FloatExample2.send();
 			error |= (CAN1_FloatExample2.raw != expectedmsg);
 

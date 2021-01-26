@@ -42,6 +42,8 @@ void InitCAN1(CAN_HandleTypeDef *canh){
   	}
 
   	CAN1_InteractionLayerStart();
+
+  	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 }
 
 
@@ -57,6 +59,8 @@ static uint8_t TxData[8];
 static uint32_t  pTxMailbox;
 
 void CAN1_SendCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
+
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
 	if(is_extended){
 		TxHeader.IDE = CAN_ID_EXT;
@@ -83,6 +87,8 @@ void CAN1_SendCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC
 			TxData,
 			&pTxMailbox
 		);
+
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 }
 

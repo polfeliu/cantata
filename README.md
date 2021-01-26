@@ -115,9 +115,8 @@ sat = CAN1sig_SleepInd.setValue(34);
 ```
 setValue checks if the value passed exceeds the signal maximum and minimum and saturates it accordingly. It also returns a boolean that informs if the value saturated.
 
-If the signal has a Value Table associated to it the getValue and SetValue will return and accept respectively enum datatypes that hold the names of the value tables for easy application programming.
 
-#### setValue
+#### setRaw
 ```c
 CAN1sig_SleepInd.setRaw(34);
 ```
@@ -132,6 +131,7 @@ typedef enum {
     CAN1sig_StatusVT_WakeUp=0,
 }CAN1sig_StatusVT_t;
 ```
+They can be used with setValue and getValue methods
 ```c
 CAN1sig_Status.setValue(CAN1sig_StatusVT_WakeUp);
 ```

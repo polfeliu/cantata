@@ -36,7 +36,6 @@ class CANDatabaseLayer:
     # TODO Make Comment optional
     # TODO Option to make functions thread safe in FreeRTOS (portEnterCritical and portExitCritical)
     # TODO InteractionLayer Bind to Message Received events to Messages received
-    # TODO Licensing :D
     # TODO FreeRtos Initialization of signals and messages, how is this handled?
     # TODO Raw messages with variable length according to DLC. Would reduce memory footprint and it would be easy to use this lib with CANFD (64 bytes per message)
 
@@ -405,7 +404,12 @@ class CANDatabaseLayer:
             sig["startbit"] = signal.start
 
             if signal.byte_order == "big_endian":
-                sig["startbit"] = sig["startbit"] - signal.length + 1
+                if sig['value_type'] == "single":
+                    sig["startbit"] = sig["startbit"] - 7
+                elif sig['value_type'] == "double":
+                    sig["startbit"] = sig["startbit"] - 55
+                else:
+                    sig["startbit"] = sig["startbit"] - signal.length + 1
 
             fr["signals"][signal.name] = sig
 
