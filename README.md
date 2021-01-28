@@ -249,7 +249,7 @@ Messages with attribute _GenMsgSendType = Cyclic_ are grouped by cyclic times an
 Message is sent no matter the state of the button
 ### On Change
 Signals with attribute _GenSigSendType = OnChange_ send the messages they are assigned to whenever the raw value of the signal changes with .setValue() or .setRaw().
-Note that .setValue() computes factor and offset, round of to integers and if the calculated raw value of the signal doesn't change the signal is not sent 
+Note that .setValue() computes factor and offset, and rounds off to integers. If the calculated raw value of the signal doesn't change the signal is not sent 
 
 ![alt text](test/Screenshots/OnChange.png)
 
@@ -260,7 +260,7 @@ CAN1sig_IdleRunning.setValue(button);
 
 ### On Change With Repetitions
 Signals with attribute _GenSigSendType = OnChangeWithRepetition_ send the messages similary as _OnChange_ but, after the value is changed (and sent) the signal is sent N times at a fast rate, thus the message is sent N+1 times.
-This fast rate is defined in the message attribute _GenMsgCycleTime_ and number of times the message is sent is set with _GenMsgNrOfRepetition_.    
+This fast rate is defined in the message attribute _GenMsgCycleTimeFast_ and number of times the message is sent is set with _GenMsgNrOfRepetition_.    
 ![alt text](test/Screenshots/OnChangeWithRepetitions.png)
 
 Example: Same as before

@@ -179,7 +179,7 @@ struct %ssig_%s_t{
     const double min ;
     const double max ;
     %s raw;
-    const %s (*getValue)(void);"""
+    %s (*const getValue)(void);"""
     % (
         prefix,signame,
         sig['unit_len'],
@@ -191,8 +191,8 @@ struct %ssig_%s_t{
     if sig["TX"]:
         cog.out(
             """
-    const bool (*setValue)(%s);
-    const void (*setRaw)(%s);"""
+    bool (*const setValue)(%s);
+    void (*const setRaw)(%s);"""
         % (
             sig['getsetValue_type'],
             sig['value_type']

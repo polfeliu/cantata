@@ -203,7 +203,7 @@ struct CAN1sig_DoubleExample2_t{
     const double min ;
     const double max ;
     double raw;
-    const double (*getValue)(void);
+    double (*const getValue)(void);
 };
 
 struct CAN1sig_SingleExample3_t{
@@ -217,7 +217,7 @@ struct CAN1sig_SingleExample3_t{
     const double min ;
     const double max ;
     single raw;
-    const single (*getValue)(void);
+    single (*const getValue)(void);
 };
 
 struct CAN1sig_DoubleExample_t{
@@ -231,9 +231,9 @@ struct CAN1sig_DoubleExample_t{
     const double min ;
     const double max ;
     double raw;
-    const double (*getValue)(void);
-    const bool (*setValue)(double);
-    const void (*setRaw)(double);
+    double (*const getValue)(void);
+    bool (*const setValue)(double);
+    void (*const setRaw)(double);
     bool sent;
 };
 
@@ -248,9 +248,9 @@ struct CAN1sig_SingleExample_t{
     const double min ;
     const double max ;
     single raw;
-    const single (*getValue)(void);
-    const bool (*setValue)(single);
-    const void (*setRaw)(single);
+    single (*const getValue)(void);
+    bool (*const setValue)(single);
+    void (*const setRaw)(single);
     bool sent;
 };
 
@@ -265,9 +265,9 @@ struct CAN1sig_SingleExample2_t{
     const double min ;
     const double max ;
     single raw;
-    const single (*getValue)(void);
-    const bool (*setValue)(single);
-    const void (*setRaw)(single);
+    single (*const getValue)(void);
+    bool (*const setValue)(single);
+    void (*const setRaw)(single);
     bool sent;
 };
 
@@ -282,9 +282,9 @@ struct CAN1sig_CarSpeed_t{
     const double min ;
     const double max ;
     uint16_t raw;
-    const double (*getValue)(void);
-    const bool (*setValue)(double);
-    const void (*setRaw)(uint16_t);
+    double (*const getValue)(void);
+    bool (*const setValue)(double);
+    void (*const setRaw)(uint16_t);
     bool sent;
 };
 
@@ -299,9 +299,9 @@ struct CAN1sig_GearLock_t{
     const double min ;
     const double max ;
     bool raw;
-    const CAN1sig_GearLockVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_GearLockVT_t);
-    const void (*setRaw)(bool);
+    CAN1sig_GearLockVT_t (*const getValue)(void);
+    bool (*const setValue)(CAN1sig_GearLockVT_t);
+    void (*const setRaw)(bool);
     bool sent;
 };
 
@@ -316,9 +316,9 @@ struct CAN1sig_Diagnostics_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
+    uint8_t (*const getValue)(void);
+    bool (*const setValue)(uint8_t);
+    void (*const setRaw)(uint8_t);
     bool sent;
 };
 
@@ -333,9 +333,9 @@ struct CAN1sig_AccelerationForce_t{
     const double min ;
     const double max ;
     uint16_t raw;
-    const double (*getValue)(void);
-    const bool (*setValue)(double);
-    const void (*setRaw)(uint16_t);
+    double (*const getValue)(void);
+    bool (*const setValue)(double);
+    void (*const setRaw)(uint16_t);
     bool sent;
 };
 
@@ -350,9 +350,9 @@ struct CAN1sig_ExSignal7_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const int8_t (*getValue)(void);
-    const bool (*setValue)(int8_t);
-    const void (*setRaw)(int8_t);
+    int8_t (*const getValue)(void);
+    bool (*const setValue)(int8_t);
+    void (*const setRaw)(int8_t);
     bool sent;
 };
 
@@ -367,9 +367,9 @@ struct CAN1sig_ExSignal8_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const int8_t (*getValue)(void);
-    const bool (*setValue)(int8_t);
-    const void (*setRaw)(int8_t);
+    int8_t (*const getValue)(void);
+    bool (*const setValue)(int8_t);
+    void (*const setRaw)(int8_t);
     bool sent;
 };
 
@@ -384,9 +384,9 @@ struct CAN1sig_ExSignal9_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const int8_t (*getValue)(void);
-    const bool (*setValue)(int8_t);
-    const void (*setRaw)(int8_t);
+    int8_t (*const getValue)(void);
+    bool (*const setValue)(int8_t);
+    void (*const setRaw)(int8_t);
     bool sent;
     uint32_t inactiveValue;
 };
@@ -402,7 +402,7 @@ struct CAN1sig_EXSignal1_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const CAN1sig_EXSignal1VT_t (*getValue)(void);
+    CAN1sig_EXSignal1VT_t (*const getValue)(void);
 };
 
 struct CAN1sig_EXSignal2_t{
@@ -416,7 +416,7 @@ struct CAN1sig_EXSignal2_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const CAN1sig_EXSignal2VT_t (*getValue)(void);
+    CAN1sig_EXSignal2VT_t (*const getValue)(void);
 };
 
 struct CAN1sig_EXSignal3_t{
@@ -430,7 +430,7 @@ struct CAN1sig_EXSignal3_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const int8_t (*getValue)(void);
+    int8_t (*const getValue)(void);
 };
 
 struct CAN1sig_EXSignal4_t{
@@ -444,7 +444,7 @@ struct CAN1sig_EXSignal4_t{
     const double min ;
     const double max ;
     int8_t raw;
-    const int8_t (*getValue)(void);
+    int8_t (*const getValue)(void);
 };
 
 struct CAN1sig_StarterKey_t{
@@ -458,7 +458,7 @@ struct CAN1sig_StarterKey_t{
     const double min ;
     const double max ;
     bool raw;
-    const bool (*getValue)(void);
+    bool (*const getValue)(void);
 };
 
 struct CAN1sig_SleepInd_t{
@@ -472,9 +472,9 @@ struct CAN1sig_SleepInd_t{
     const double min ;
     const double max ;
     bool raw;
-    const bool (*getValue)(void);
-    const bool (*setValue)(bool);
-    const void (*setRaw)(bool);
+    bool (*const getValue)(void);
+    bool (*const setValue)(bool);
+    void (*const setRaw)(bool);
     bool sent;
 };
 
@@ -489,9 +489,9 @@ struct CAN1sig_ShiftRequest_t{
     const double min ;
     const double max ;
     bool raw;
-    const CAN1sig_ShiftRequestVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_ShiftRequestVT_t);
-    const void (*setRaw)(bool);
+    CAN1sig_ShiftRequestVT_t (*const getValue)(void);
+    bool (*const setValue)(CAN1sig_ShiftRequestVT_t);
+    void (*const setRaw)(bool);
     bool sent;
 };
 
@@ -506,9 +506,9 @@ struct CAN1sig_Gear_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const CAN1sig_GearVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_GearVT_t);
-    const void (*setRaw)(uint8_t);
+    CAN1sig_GearVT_t (*const getValue)(void);
+    bool (*const setValue)(CAN1sig_GearVT_t);
+    void (*const setRaw)(uint8_t);
     bool sent;
 };
 
@@ -523,9 +523,9 @@ struct CAN1sig_EcoMode_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
+    uint8_t (*const getValue)(void);
+    bool (*const setValue)(uint8_t);
+    void (*const setRaw)(uint8_t);
     bool sent;
 };
 
@@ -540,9 +540,9 @@ struct CAN1sig_Status_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const CAN1sig_StatusVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_StatusVT_t);
-    const void (*setRaw)(uint8_t);
+    CAN1sig_StatusVT_t (*const getValue)(void);
+    bool (*const setValue)(CAN1sig_StatusVT_t);
+    void (*const setRaw)(uint8_t);
     bool sent;
 };
 
@@ -557,9 +557,9 @@ struct CAN1sig_ErrorCode_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
+    uint8_t (*const getValue)(void);
+    bool (*const setValue)(uint8_t);
+    void (*const setRaw)(uint8_t);
     bool sent;
     uint32_t inactiveValue;
 };
@@ -575,9 +575,9 @@ struct CAN1sig_EngSpeed_t{
     const double min ;
     const double max ;
     uint16_t raw;
-    const uint16_t (*getValue)(void);
-    const bool (*setValue)(uint16_t);
-    const void (*setRaw)(uint16_t);
+    uint16_t (*const getValue)(void);
+    bool (*const setValue)(uint16_t);
+    void (*const setRaw)(uint16_t);
     bool sent;
 };
 
@@ -592,9 +592,9 @@ struct CAN1sig_EngTemp_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const double (*getValue)(void);
-    const bool (*setValue)(double);
-    const void (*setRaw)(uint8_t);
+    double (*const getValue)(void);
+    bool (*const setValue)(double);
+    void (*const setRaw)(uint8_t);
     bool sent;
 };
 
@@ -609,9 +609,9 @@ struct CAN1sig_IdleRunning_t{
     const double min ;
     const double max ;
     bool raw;
-    const CAN1sig_IdleRunningVT_t (*getValue)(void);
-    const bool (*setValue)(CAN1sig_IdleRunningVT_t);
-    const void (*setRaw)(bool);
+    CAN1sig_IdleRunningVT_t (*const getValue)(void);
+    bool (*const setValue)(CAN1sig_IdleRunningVT_t);
+    void (*const setRaw)(bool);
     bool sent;
 };
 
@@ -626,9 +626,9 @@ struct CAN1sig_PetrolLevel_t{
     const double min ;
     const double max ;
     uint8_t raw;
-    const uint8_t (*getValue)(void);
-    const bool (*setValue)(uint8_t);
-    const void (*setRaw)(uint8_t);
+    uint8_t (*const getValue)(void);
+    bool (*const setValue)(uint8_t);
+    void (*const setRaw)(uint8_t);
     bool sent;
 };
 
@@ -643,9 +643,9 @@ struct CAN1sig_EngForce_t{
     const double min ;
     const double max ;
     uint16_t raw;
-    const uint16_t (*getValue)(void);
-    const bool (*setValue)(uint16_t);
-    const void (*setRaw)(uint16_t);
+    uint16_t (*const getValue)(void);
+    bool (*const setValue)(uint16_t);
+    void (*const setRaw)(uint16_t);
     bool sent;
 };
 
@@ -660,9 +660,9 @@ struct CAN1sig_EngPower_t{
     const double min ;
     const double max ;
     uint16_t raw;
-    const double (*getValue)(void);
-    const bool (*setValue)(double);
-    const void (*setRaw)(uint16_t);
+    double (*const getValue)(void);
+    bool (*const setValue)(double);
+    void (*const setRaw)(uint16_t);
     bool sent;
 };
 
