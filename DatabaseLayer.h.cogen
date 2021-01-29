@@ -3,9 +3,6 @@
  * @details This file was created with the CANDatabaseTool
  * @author Pol Feliu Cuberes
  * @link https://github.com/polfeliu/CANDatabaseLayer
- * @section License
- * This file was automatically generated and is subject to the license of this project
- * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
  ******************************************************************************
  */
 
@@ -239,12 +236,12 @@ struct %s_%s_t{
 
     if frame['RX']:
         cog.out("""
-    const void (*receive)(void);"""
+    void (*const receive)(void);"""
         %());
 
     if frame['TX']:
         cog.out("""
-    const void (*send)(void);"""
+    void (*const send)(void);"""
         %());
 
     if settings['FreeRTOSInteractionLayer']:
