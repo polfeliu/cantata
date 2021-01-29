@@ -239,12 +239,12 @@ struct %s_%s_t{
 
     if frame['RX']:
         cog.out("""
-    const void (*receive)(void);"""
+    void (*const receive)(void);"""
         %());
 
     if frame['TX']:
         cog.out("""
-    const void (*send)(void);"""
+    void (*const send)(void);"""
         %());
 
     if settings['FreeRTOSInteractionLayer']:
