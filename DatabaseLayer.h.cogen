@@ -66,10 +66,8 @@ import cog
 if settings['CallbackLib'] is not None:
     cog.out(
 """
-void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC);
-"""%(
-
-    ));
+void %s_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC);
+""" % (prefix));
 ]]]*/
 //[[[end]]]
 
