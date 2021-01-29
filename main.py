@@ -105,9 +105,6 @@ class CANDatabaseLayer:
             'ExtendedFilter': ExtendedFilter,
             'ExtendedMask': ExtendedMask
         }
-        filter = 0b1001
-        mask = 0b1110
-        id = 0b1001
 
         idsmatched = []
         idsnotmatched = []
