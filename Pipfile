@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 pipenv-setup = "*"
+pandas = "*"
+openpyxl = "*"
 
 [packages]
 cogapp = "*"

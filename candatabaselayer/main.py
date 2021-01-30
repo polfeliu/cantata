@@ -282,7 +282,6 @@ class CANDatabaseLayer:
 
     def checkMinMax(self, signal):
         #get rawvalue min and max
-
         if signal.is_float:
             if signal.length==64:
                 #double
@@ -588,11 +587,10 @@ if __name__ == '__main__':
 
     can = CANDatabaseLayer("CAN1")
 
-    can.load('./test/CAN1.dbc')
+    can.load('../test/CAN1.dbc')
 
-    src = r'./test/STM32TestProject/Core/Src/'
-    hdr = r'./test/STM32TestProject/Core/Inc/'
-
+    src = r'../test/STM32TestProject/Core/Src/'
+    hdr = r'../test/STM32TestProject/Core/Inc/'
 
     can.correctMinsMax()
     can.process(node="Engine")

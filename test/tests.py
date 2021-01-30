@@ -3,7 +3,6 @@ import cantools
 import random
 import os
 
-from six import b
 
 def Uint64Format(data):
     for padi in range(8 - len(data)):
