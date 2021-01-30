@@ -129,19 +129,20 @@ class CANDatabaseLayer:
         Nidsall = Nidsmatched + Nidsnotmatched;
 
         NpassIDs = len(passIDs)
-        passRatio = NpassIDs / Nidsall #wanted ratio of messages passing
-        matchedratio = Nidsmatched/Nidsall # obtained ratio of messages passing
+        try:
+            passRatio = NpassIDs / Nidsall #wanted ratio of messages passing
+            matchedratio = Nidsmatched/Nidsall # obtained ratio of messages passing
+            efficiency = passRatio/matchedratio
+        except:
+            passRatio = "NULL"
+            matchedratio = "NULL"
+            efficiency = "NULL"
 
-        efficiency = passRatio/matchedratio
-
-        filterobject['evaluation'] = """
-// PassRatio: {passRatio:.0%}  // Messages that this ECU Reads
-// MatchedRatio: {matchedratio:.0%}  // Messages that the Filters lets pass
-// Efficiency: {efficiency:.0%}  // Effiency of the filter (passRation/matchedRatio)
-        """.format(
-            passRatio=passRatio,
-            matchedratio=matchedratio,
-            efficiency=efficiency);
+        filterobject['evaluation'] = ("""
+// PassRatio: %s  // Messages that this ECU Reads
+// MatchedRatio: %s  // Messages that the Filters lets pass
+// Efficiency: %s  // Effiency of the filter (passRation/matchedRatio)
+""" % (passRatio, matchedratio, efficiency))
 
         self.filter = filterobject;
 
