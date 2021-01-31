@@ -1,10 +1,15 @@
-# cantata
-*Warning!* This is a work in progress and it doesn't have proper testing done to it. Use at your own risk!
+# Cantata
+*Warning!* This is a work in progress, and it doesn't have proper testing done to it. Use at your own risk!
 
 This Python module extracts information from CANdb Databases and generates C code for integrating it into embedded projects. It is environment agnostic, it can be integrated into any MCU in theory. Example files to integrate it into STM32 using HAL from ST are included in this repo.\
-The candb library used for reading the dbc files ([cantools](https://cantools.readthedocs.io/en/latest/)) also accepts other formats but it hasn't been tested.
+The candb library used for reading the dbc files ([cantools](https://cantools.readthedocs.io/en/latest/)) also accepts other formats, but it hasn't been tested.
 ## Install
-The best way to use this module is to clone the repository and install the pipenv inside it.
+You can install the package from PyPi
+```bash
+pip install python-cantata
+```
+Alternatively it can be installed from the git repository. Cloning the project and installing the pipenv for development
+
 ```bash
 git clone https://github.com/polfeliu/cantata
 cd cantata
@@ -12,13 +17,12 @@ pip install pipenv #if you don't have pipenv...
 pipenv install
 pipenv shell
 ```
-There you can use the project all the following features excuting python scripts that generate the C code.
-Someday I may create a .exe file with pyinstaller but wrapping all the settings into it is too much work right now.
 
 ## Usage
 To generate the files you can either edit the last part of main.py (that right now generates the test) or create a new python file and import the module from it.
 When creating the can object you will choose the prefix that all the objects will have. All the prefixes in this readme are "CAN1".
 ```python
+from cantata import cantata
 can = cantata("CAN1") # create the object setting the prefix that will be used in all objects.
 #Handy if you have several networks
 
@@ -31,11 +35,8 @@ can.correctMinsMax() # Correct the minimums and maximums
 can.process(node="Engine") #Generate for the Node Engine
 can.process() # you can also generate all messages and signals without specifying the node
 
-can.genFiles(srcfile=src, hdrfile=hdr);
+can.genFiles(src=src, hdr=hdr);
 can.reset() #you can reset the data to be able to generate a new Node in another place
-    
-shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c') #Copy the STM32CANCallbacks
-shutil.copyfile(r'STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h') #Copy the STM32CANCallbacks
 ```
 
 The function _process_ will extract the signals and frames of the database. The _node_ parameter passed indicates which node is the code for, meaning only the frames and signals necessary will be in the code. Also if the frame is TX it will only have send() method, and if it is RX it will be receive(). Signals will always have getValue() methods and only setValue() methods if they are TX. \

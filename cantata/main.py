@@ -42,6 +42,9 @@ class cantata:
         self.settings['prefix'] = name
         self.reset()
 
+        import pkg_resources
+        self.PathTemplates = pkg_resources.resource_filename('cantata', 'templates/')
+
     def reset(self):
         self.frames = {}
         self.signals = {}
@@ -556,7 +559,7 @@ calculated maximum: %s
         #TODO check if the multiplexor values should be the raw value or the physical value! They can only be integers. Either way, who would put a factor in a multiplexor signal???
         return sig
 
-    def genFiles(self, srcfile=None, hdrfile=None):
+    def genFiles(self, src=None, hdr=None):
         globals = {}
 
         globals["settings"] = self.settings;
@@ -568,20 +571,19 @@ calculated maximum: %s
         globals["filter"] = self.filter
 
         globals["prefix"] = self.settings["prefix"]; #quicker acccess than settings
+        srcfilename = "cantata%s.c" % self.settings['prefix']
+        hdrfilename = "cantata%s.h" % self.settings['prefix']
 
         p = self.PathTemplates
 
-        codegen.processFile(fIn=p+"cantata.c.cogen", fOut=p+"cantata.c", fname="", globals=globals);
-        codegen.processFile(fIn=p+"cantata.h.cogen", fOut=p+"cantata.h", fname="", globals=globals);
+        codegen.processFile(fIn=p+"cantata.c.cogen", fOut=p+srcfilename, fname="", globals=globals);
+        codegen.processFile(fIn=p+"cantata.h.cogen", fOut=p+hdrfilename, fname="", globals=globals);
 
-        #codegen.processFile(fIn=p + "InteractionLayer.c.cogen", fOut=p + "InteractionLayer.c", fname="", globals=globals);
+        if src:
+            shutil.copyfile(p+srcfilename, src+srcfilename)
 
-        if srcfile:
-            shutil.copyfile(p+r'cantata.c', srcfile+r'cantata.c')
-
-
-        if hdrfile:
-            shutil.copyfile(p+r'cantata.h', hdrfile+r'cantata.h')
+        if hdr:
+            shutil.copyfile(p+hdrfilename, hdr+hdrfilename)
 
 if __name__ == '__main__':
 
@@ -596,6 +598,6 @@ if __name__ == '__main__':
     can.process(node="Engine")
     #can.process()
 
-    can.genFiles(srcfile=src, hdrfile=hdr);
-    #shutil.copyfile(r'STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
-    #shutil.copyfile(r'STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')
+    can.genFiles(src=src, hdr=hdr);
+    shutil.copyfile(r'../callbacks/STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
+    shutil.copyfile(r'../callbacks/STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')

@@ -1,0 +1,3 @@
+include cantata/templates/cantata.c.cogen
+include cantata/templates/cantata.h.cogen
+exclude test/*
