@@ -1,11 +1,11 @@
 /**
  ******************************************************************************
- * @details This file was created with the CANDatabaseTool
+ * @details This file was created with cantata, a code generation tool for can databases
  * @author Pol Feliu Cuberes
- * @link https://github.com/polfeliu/CANDatabaseLayer
+ * @link https://github.com/polfeliu/cantata
  ******************************************************************************
  */
-#include "DatabaseLayer.h"
+#include "cantata.h"
 /*[[[cog
 import cog
 if settings['CallbackLib'] is not None:

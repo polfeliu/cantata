@@ -1,11 +1,8 @@
 /**
  ******************************************************************************
- * @details This file was created with the CANDatabaseTool
+ * @details This file was created with cantata, a code generation tool for can databases
  * @author Pol Feliu Cuberes
- * @link https://github.com/polfeliu/CANDatabaseLayer
- * @section License
- * This file was automatically generated and is subject to the license of this project
- * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ * @link https://github.com/polfeliu/cantata
  ******************************************************************************
  */
 
@@ -35,10 +32,10 @@ void CAN1_InteractionLayerStart(void);
  * CAN Filters: CAN Filters filter and mask
  */
 
-// PassRatio: 80%  // Messages that this ECU Reads
-// MatchedRatio: 80%  // Messages that the Filters lets pass
-// Efficiency: 100%  // Effiency of the filter (passRation/matchedRatio)
-        
+// PassRatio: 0.8  // Messages that this ECU Reads
+// MatchedRatio: 0.8  // Messages that the Filters lets pass
+// Efficiency: 1.0  // Effiency of the filter (passRation/matchedRatio)
+
 #define CAN1_StandardFilter   0b00010110001
 #define CAN1_StandardMask     0b10000001000
 #define CAN1_ExtendedFilter   0b00000000000000000000000000000
@@ -676,7 +673,7 @@ struct CAN1_FloatExample4_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*receive)(void);
+    void (*const receive)(void);
     const struct CAN1_FloatExample4_signals_t{
         const struct{
             const struct CAN1sig_DoubleExample2_t *signal;
@@ -692,7 +689,7 @@ struct CAN1_FloatExample3_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*receive)(void);
+    void (*const receive)(void);
     const struct CAN1_FloatExample3_signals_t{
         const struct{
             const struct CAN1sig_SingleExample3_t *signal;
@@ -708,7 +705,7 @@ struct CAN1_FloatExample2_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const struct CAN1_FloatExample2_signals_t{
         const struct{
             const struct CAN1sig_DoubleExample_t *signal;
@@ -724,7 +721,7 @@ struct CAN1_FloatExample_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const struct CAN1_FloatExample_signals_t{
         const struct{
             const struct CAN1sig_SingleExample_t *signal;
@@ -746,7 +743,7 @@ struct CAN1_ABSdata_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
     const struct CAN1_ABSdata_signals_t{
@@ -782,7 +779,7 @@ struct CAN1_MultiplexExample2_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
     const struct CAN1_MultiplexExample2_signals_t{
@@ -816,7 +813,7 @@ struct CAN1_MultiplexExample_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*receive)(void);
+    void (*const receive)(void);
     const struct CAN1_MultiplexExample_signals_t{
         const struct{
             const struct CAN1sig_EXSignal1_t *signal;
@@ -860,7 +857,7 @@ struct CAN1_Ignition_Info_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*receive)(void);
+    void (*const receive)(void);
     const struct CAN1_Ignition_Info_signals_t{
         const struct{
             const struct CAN1sig_StarterKey_t *signal;
@@ -876,7 +873,7 @@ struct CAN1_NM_Engine_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const struct CAN1_NM_Engine_signals_t{
         const struct{
             const struct CAN1sig_SleepInd_t *signal;
@@ -892,7 +889,7 @@ struct CAN1_GearBoxInfo_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
     const struct CAN1_GearBoxInfo_signals_t{
@@ -928,7 +925,7 @@ struct CAN1_EngineStatus_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
     const struct CAN1_EngineStatus_signals_t{
@@ -952,7 +949,7 @@ struct CAN1_EngineData_t{
     const bool is_extended;
     const uint8_t DLC;
     uint64_t raw;
-    const void (*send)(void);
+    void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
     const struct CAN1_EngineData_signals_t{

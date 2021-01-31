@@ -1,5 +1,5 @@
-from candatabaselayer import CANDatabaseLayer
-can = CANDatabaseLayer('CAN1')
+from cantata import cantata
+can = cantata('CAN1')
 can.load('./CAN1.dbc')
 
 from pprint import pprint

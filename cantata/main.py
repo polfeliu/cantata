@@ -5,7 +5,6 @@ import cantools
 import shutil
 import re
 import sys
-from pprint import pprint
 
 from cantools.database.can.attribute import Attribute
 
@@ -17,7 +16,7 @@ def bit_not(n, numbits=32):
     return (1 << numbits) - 1 - n
 
 
-class CANDatabaseLayer:
+class cantata:
 
     PathTemplates = "./"
 
@@ -572,21 +571,21 @@ calculated maximum: %s
 
         p = self.PathTemplates
 
-        codegen.processFile(fIn=p+"DatabaseLayer.c.cogen", fOut=p+"DatabaseLayer.c", fname="", globals=globals);
-        codegen.processFile(fIn=p+"DatabaseLayer.h.cogen", fOut=p+"DatabaseLayer.h", fname="", globals=globals);
+        codegen.processFile(fIn=p+"cantata.c.cogen", fOut=p+"cantata.c", fname="", globals=globals);
+        codegen.processFile(fIn=p+"cantata.h.cogen", fOut=p+"cantata.h", fname="", globals=globals);
 
         #codegen.processFile(fIn=p + "InteractionLayer.c.cogen", fOut=p + "InteractionLayer.c", fname="", globals=globals);
 
         if srcfile:
-            shutil.copyfile(p+r'DatabaseLayer.c', srcfile+r'DatabaseLayer.c')
+            shutil.copyfile(p+r'cantata.c', srcfile+r'cantata.c')
 
 
         if hdrfile:
-            shutil.copyfile(p+r'DatabaseLayer.h', hdrfile+r'DatabaseLayer.h')
+            shutil.copyfile(p+r'cantata.h', hdrfile+r'cantata.h')
 
 if __name__ == '__main__':
 
-    can = CANDatabaseLayer("CAN1")
+    can = cantata("CAN1")
 
     can.load('../test/CAN1.dbc')
 

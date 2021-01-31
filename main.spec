@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['C:\\Users\\pol\\OneDrive\\Electronica\\CANDatabaseLayer\\CANDatabaseLayer'],
+             pathex=['C:\\Users\\pol\\OneDrive\\Electronica\\cantata\\cantata'],
              binaries=[],
              datas=[],
              hiddenimports=[],

@@ -1,14 +1,11 @@
 /**
  ******************************************************************************
- * @details This file was created with the CANDatabaseTool
+ * @details This file was created with cantata, a code generation tool for can databases
  * @author Pol Feliu Cuberes
- * @link https://github.com/polfeliu/CANDatabaseLayer
- * @section License
- * This file was automatically generated and is subject to the license of this project
- * Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ * @link https://github.com/polfeliu/cantata
  ******************************************************************************
  */
-#include "DatabaseLayer.h"
+#include "cantata.h"
 #include "STM32CANCallbacks.h" 
 
 uint64_t reverseBits(uint64_t num, uint8_t NO_OF_BITS)

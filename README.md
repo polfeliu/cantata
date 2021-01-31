@@ -1,4 +1,4 @@
-# CANDatabaseLayer
+# cantata
 *Warning!* This is a work in progress and it doesn't have proper testing done to it. Use at your own risk!
 
 This Python module extracts information from CANdb Databases and generates C code for integrating it into embedded projects. It is environment agnostic, it can be integrated into any MCU in theory. Example files to integrate it into STM32 using HAL from ST are included in this repo.\
@@ -6,8 +6,8 @@ The candb library used for reading the dbc files ([cantools](https://cantools.re
 ## Install
 The best way to use this module is to clone the repository and install the pipenv inside it.
 ```bash
-git clone https://github.com/polfeliu/CANDatabaseLayer
-cd CANDatabaseLayer
+git clone https://github.com/polfeliu/cantata
+cd cantata
 pip install pipenv #if you don't have pipenv...
 pipenv install
 pipenv shell
@@ -19,7 +19,7 @@ Someday I may create a .exe file with pyinstaller but wrapping all the settings 
 To generate the files you can either edit the last part of main.py (that right now generates the test) or create a new python file and import the module from it.
 When creating the can object you will choose the prefix that all the objects will have. All the prefixes in this readme are "CAN1".
 ```python
-can = CANDatabaseLayer("CAN1") # create the object setting the prefix that will be used in all objects.
+can = cantata("CAN1") # create the object setting the prefix that will be used in all objects.
 #Handy if you have several networks
 
 can.load('./test/CAN1.dbc')# Import database
@@ -73,7 +73,7 @@ More on CAN controller hardware filters: http://www.cse.dmu.ac.uk/~eg/tele/Canbu
 In the STM32CANCallbacks.c files there is an initialization of the CAN that includes the configuration of the bxCAN filter.
 
 ## Structure
-The library generates DatabaseLayer.c and DatabaseLayer.h files with structures and functions for the following objects.
+The library generates cantata.c and cantata.h files with structures and functions for the following objects.
 
 ![alt text](diagram.png)
 
@@ -199,7 +199,7 @@ Send Method can be used from the application to decide when to send each frame. 
 ### CallBacks
 #### Receive
 The library also defines a receive callback (*CAN1_ReceiveCallback*) that can be used to handle incoming messages and store them in the respective structures according to the ID.
-When the driver receives a message it should call this function with the appropiate parameters. This function is driver agnostic and it is generated in the DatabaseLayer file.
+When the driver receives a message it should call this function with the appropiate parameters. This function is driver agnostic and it is generated in the cantata file.
 ```c
 void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
     if((ID > 0x1FFFFFFF) & is_extended){
