@@ -297,7 +297,7 @@ if(button){
 }
 ```
 
-### On Write With Repetitions
+### If Active With Repetitions
 Signals with attribute _GenSigSendType = IfActiveWithRepetitions_ send the messages similarly as _IfActive_. Whenever the signal takes the value of _GenSigInactiveValue_ the signal is sent N times more as **On Change With Repetitions**
 ![alt text](test/Screenshots/IfActiveWithRepetitions.png)
 
