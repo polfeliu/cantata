@@ -5,9 +5,12 @@
  * @link https://github.com/polfeliu/cantata
  ******************************************************************************
  */
-#include "cantata.h"
 /*[[[cog
 import cog
+cog.out("""
+#include "cantata%s.h" 
+""" % (prefix))
+
 if settings['CallbackLib'] is not None:
     cog.outl("""#include "%s.h" """ % (settings['CallbackLib']))
 ]]]*/
@@ -278,9 +281,10 @@ void %s_InteractionLayerStart(){""" % prefix)
                 prefix, framename
                 ))
 
+    if InteractionLayer['OnWriteOnChange']:
 
 
-    cog.out("""
+    	cog.out("""
 
     /*
      * OnWriteOnChange Task
@@ -344,7 +348,9 @@ void %s_InteractionLayerStop(){""" % prefix)
         vTaskInteractionLayer_%s_%s_fastDelayedResume_Handle
     ); """ % (  prefix, framename ))
 
-    cog.out("""
+
+    if InteractionLayer['OnWriteOnChange']:
+    	cog.out("""
 
     /*
      * OnWriteOnChange Task
