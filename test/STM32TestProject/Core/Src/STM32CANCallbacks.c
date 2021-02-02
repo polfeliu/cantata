@@ -1,5 +1,5 @@
 #include "STM32CANCallbacks.h"
-#include "cantata.h"
+#include "cantataCAN1.h"
 #include "stdbool.h"
 
 /* Includes ------------------------------------------------------------------*/
@@ -56,7 +56,8 @@ static CAN_TxHeaderTypeDef TxHeader = {
 static uint8_t TxData[8];
 static uint32_t  pTxMailbox;
 
-void CAN1_SendCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
+
+void CAN1_SendCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended){
 
 	if(is_extended){
 		TxHeader.IDE = CAN_ID_EXT;
@@ -68,11 +69,6 @@ void CAN1_SendCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC
 
 	TxHeader.DLC = DLC;
 
-	for(int i=0; i<8; i++){
-		TxData[i] = (uint8_t) data & 0xFF;
-		data = data >> 8;
-	}
-
 	while(HAL_CAN_GetTxMailboxesFreeLevel(&CANHandle) == 0){//wait for a free mailbox
 		HAL_Delay(1);
 	}
@@ -80,7 +76,7 @@ void CAN1_SendCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC
 	HAL_CAN_AddTxMessage(
 			&CANHandle,
 			&TxHeader,
-			TxData,
+			data,
 			&pTxMailbox
 		);
 
