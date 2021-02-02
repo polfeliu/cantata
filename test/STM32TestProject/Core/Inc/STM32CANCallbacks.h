@@ -8,7 +8,7 @@
 #include "stdbool.h"
 
 
-void CAN1_SendCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC);
+void CAN1_SendCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended);
 void InitCAN1(CAN_HandleTypeDef *canh);
 
 #ifdef __cplusplus

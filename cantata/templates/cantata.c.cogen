@@ -374,25 +374,34 @@ void %s_InteractionLayerStop(){""" % prefix)
 /*[[[cog
 import cog
 if settings['CallbackLib'] is not None:
+    additionalparameters = ""
+    if BusType=="CAN FD":
+        additionalparameters += ", bool FDF, bool BRS"
+
     cog.out(
 """
-void %s_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
+void %s_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended%s){
     if((ID > 0x1FFFFFFF) & is_extended){
         //invalid extended identifier
     }else if((ID > 0x7FF) & !is_extended){
         //invalid standard identifier
     }
-""" %(prefix));
+""" %(prefix, additionalparameters));
 
 for framename, frame in frames.items():
     if frame['RX']:
+        additionalchecks = ""
+        if BusType=="CAN FD":
+            additionalchecks += " & (FDF==%s_%s.FDF) & (BRS==%s_%s.BRS)" % (prefix, framename, prefix, framename)
         cog.out(
 """
-    else if((ID==%s_%s.ID) & (is_extended==%s_%s.is_extended)){
-        %s_%s.raw = data;
+    else if((ID==%s_%s.ID) & (is_extended==%s_%s.is_extended) & (DLC==%s_%s.DLC)%s){
+        memcpy(%s_%s.raw.bytes, data, sizeof %s_%s.raw.bytes);
         %s_%s.receive();
     }
-"""%(prefix, framename, prefix, framename, prefix, framename, prefix, framename, 
+"""%(prefix, framename, prefix, framename, prefix, framename, additionalchecks,
+        prefix, framename, prefix, framename, 
+        prefix, framename
     ));
 cog.out("""
     else{
@@ -691,13 +700,10 @@ for signame, sig in signals.items():
 import cog
 def unpacksignal(framename, signalname, signal): 
     
-    # signalraw = (rawmessage >> startbit) & mask
-    raw = """(%s_%s.raw >> %s_%s.signals.%ssig_%s.startbit) & %s_%s.signals.%ssig_%s.mask""" % (
+    raw = """%s_%s.raw.%ssig_%s.sig""" % (
         prefix,framename,
-        prefix,framename,prefix,signalname, 
-        prefix,framename,prefix,signalname
+        prefix,signalname
     )
-    
 
     if signal["byte_order"] == "big_endian":
         raw = "reverseBits(%s, %ssig_%s.length)" % (raw, prefix,signalname)
@@ -725,16 +731,12 @@ def packsignal(framename, signalname, signal):
     if signal["byte_order"] == "big_endian":
         raw = "reverseBits(%s,  %ssig_%s.length)" % (raw,prefix,signalname)
 
-
-    # rawmessage |= ((uint64_t)signalraw&mask) << startbit
     cog.out(
 """
-    %s_%s.raw |= (uint64_t) ((uint64_t) %s & %s_%s.signals.%ssig_%s.mask) << %s_%s.signals.%ssig_%s.startbit;"""
+    %s_%s.raw.%ssig_%s.sig = %s;"""
         % (
-             prefix, framename,
-             raw,
-             prefix,framename,prefix,signalname, 
-             prefix,framename,prefix,signalname
+             prefix, framename, prefix, signalname,
+             raw
         ));
     if settings['FreeRTOSInteractionLayer']:
         cog.out("""
@@ -812,11 +814,11 @@ static void %s_%s_receive(){
         cog.out(
 """
 static void %s_%s_send(){
-    %s_%s.raw = 0;
+    memset (%s_%s.raw.bytes,0,sizeof %s_%s.raw.bytes);
 """
         % (
             prefix, framename,
-            prefix, framename
+            prefix, framename, prefix, framename
         ));
 
         for item in frame['signal_tree']:
@@ -828,10 +830,10 @@ static void %s_%s_send(){
         cog.out("""
 
     %s_SendCallback(
-        %s_%s.raw,
+        %s_%s.raw.bytes,
+        %s_%s.DLC,
         %s_%s.ID,
-        %s_%s.is_extended,
-        %s_%s.DLC
+        %s_%s.is_extended
     );
 };
 """%(
@@ -842,26 +844,28 @@ static void %s_%s_send(){
         prefix,framename
     ));
 
+        #TODO Add CANFD
+
 
 ]]]*/
 //[[[end]]]
 
 /*
- * Messages: Message struct definitions
+ * Messages: Message structs definitions
  */
 
 
 /*[[[cog
 import cog
 for framename, frame in frames.items():
+
     cog.out(
 """
 // Comment: %s
 struct %s_%s_t %s_%s = {
     .ID = %s, //dec: %s
     .is_extended = %s,
-    .DLC = %s,
-    .raw = 0,"""
+    .DLC = %s,"""
     % (
         frame['comment'],
         prefix,framename,prefix,framename,
@@ -890,41 +894,12 @@ struct %s_%s_t %s_%s = {
         %(frame['attributes']['GenMsgNrOfRepetition'].value));
 
     cog.out("""
-    .signals = {""");
+    .raw = {
+        .bytes = {0}
+    },""")
 
-    for signalname, sig in frame['signals'].items():
-        if sig['RX']==False and sig['TX']==False:
-            cog.outl("""
-        //%s is not mapped to this ECU""" % (signalname))
-        else:
-            cog.out(
-        """
-        .%ssig_%s = {""" % (prefix,signalname))
-
-            if sig['multiplexor'] is not None:
-                cog.out(
-        """
-            .multiplexor = &%ssig_%s,
-            .multiplexValues = %s,""" %(
-                prefix, sig['multiplexor'],
-                str(sig['multiplexValues']).replace("[", "{").replace("]", "}")
-            ))
-
-            cog.out(
-        """
-            .signal = &%ssig_%s,
-            .startbit = %s,
-            .mask = %s
-        },
-        """
-        % (  
-            prefix,signalname,
-            sig['startbit'],
-            sig['mask']
-        ));
 
     cog.out("""
-    }
 };""")
 
 

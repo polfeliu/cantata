@@ -26,7 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "cantata.h"
+#include "cantataCAN1.h"
 
 /* USER CODE END Includes */
 
@@ -150,7 +150,7 @@ void StartDefaultTask(void *argument)
 	bool error = false;
 	uint64_t expectedmsg;
 
-	InteractionLayerDemo = OnChange; // Change to try the different modes
+	InteractionLayerDemo = ReceiveTesting; // Change to try the different modes
 
 	if(InteractionLayerDemo != Cyclic){
 		// for simplicity lets disable the cyclic task
@@ -159,6 +159,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+
     vTaskDelay(pdMS_TO_TICKS(100));
 
     button_last = button;
@@ -210,7 +211,10 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000e299008a00e6;
 			CAN1_ABSdata.send();
-			error |= (CAN1_ABSdata.raw != expectedmsg);
+
+			if (memcmp ( &expectedmsg, CAN1_ABSdata.raw.bytes, sizeof(CAN1_ABSdata.raw.bytes)) != 0){
+				error = true;
+			}
 
 
 			CAN1sig_AccelerationForce.setValue(-4215);
@@ -220,7 +224,9 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000169900a705de;
 			CAN1_ABSdata.send();
-			error |= (CAN1_ABSdata.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_ABSdata.raw.bytes, sizeof(CAN1_ABSdata.raw.bytes)) != 0){
+				error = true;
+			}
 
 			//// EngineData
 			CAN1sig_EngSpeed.setValue(57288);
@@ -232,7 +238,12 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x54603262d912dfc8;
 			CAN1_EngineData.send();
-			error |= (CAN1_EngineData.raw != expectedmsg);
+
+			if (memcmp ( &expectedmsg, CAN1_EngineData.raw.bytes, sizeof(CAN1_EngineData.raw.bytes)) != 0){
+				error = true;
+			}
+
+
 
 			CAN1sig_EngSpeed.setValue(31189);
 			CAN1sig_EngTemp.setValue(27);
@@ -243,7 +254,10 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x927ca43738a679d5;
 			CAN1_EngineData.send();
-			error |= (CAN1_EngineData.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_EngineData.raw.bytes, sizeof(CAN1_EngineData.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 			//// EngineStatus
 			CAN1sig_Status.setValue(2);
@@ -251,14 +265,19 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000000082;
 			CAN1_EngineStatus.send();
-			error |= (CAN1_EngineStatus.raw != expectedmsg);
+
+			if (memcmp ( &expectedmsg, CAN1_EngineStatus.raw.bytes, sizeof(CAN1_EngineStatus.raw.bytes)) != 0){
+				error = true;
+			}
 
 			CAN1sig_Status.setValue(0);
 			CAN1sig_ErrorCode.setValue(29);
 
 			expectedmsg = 0x0000000000000074;
 			CAN1_EngineStatus.send();
-			error |= (CAN1_EngineStatus.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_EngineStatus.raw.bytes, sizeof(CAN1_EngineStatus.raw.bytes)) != 0){
+				error = true;
+			}
 
 
 			//// GearboxInfo
@@ -269,7 +288,10 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000000043;
 			CAN1_GearBoxInfo.send();
-			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_GearBoxInfo.raw.bytes, sizeof(CAN1_GearBoxInfo.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 			CAN1sig_Gear.setValue(1);
 			CAN1sig_ShiftRequest.setValue(0);
@@ -278,7 +300,10 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000000044;
 			CAN1_GearBoxInfo.send();
-			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_GearBoxInfo.raw.bytes, sizeof(CAN1_GearBoxInfo.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 			CAN1sig_Gear.setValue(3);
 			CAN1sig_ShiftRequest.setValue(0);
@@ -287,7 +312,10 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000000046;
 			CAN1_GearBoxInfo.send();
-			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_GearBoxInfo.raw.bytes, sizeof(CAN1_GearBoxInfo.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 			CAN1sig_Gear.setValue(3);
 			CAN1sig_ShiftRequest.setValue(1);
@@ -296,7 +324,10 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000000036;
 			CAN1_GearBoxInfo.send();
-			error |= (CAN1_GearBoxInfo.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_GearBoxInfo.raw.bytes, sizeof(CAN1_GearBoxInfo.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 
 			//// MultiplexExample2
@@ -306,7 +337,9 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000250000;
 			CAN1_MultiplexExample2.send();
-			error |= (CAN1_MultiplexExample2.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_MultiplexExample2.raw.bytes, sizeof(CAN1_MultiplexExample2.raw.bytes)) != 0){
+				error = true;
+			}
 
 			CAN1sig_ExSignal7.setValue(1);
 			CAN1sig_ExSignal8.setValue(0);
@@ -314,71 +347,94 @@ void StartDefaultTask(void *argument)
 
 			expectedmsg = 0x0000000000000001;
 			CAN1_MultiplexExample2.send();
-			error |= (CAN1_MultiplexExample2.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_MultiplexExample2.raw.bytes, sizeof(CAN1_MultiplexExample2.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 			//// NM_Engine
 			CAN1sig_SleepInd.setValue(0);
 
 			expectedmsg = 0x0000000000000000;
 			CAN1_NM_Engine.send();
-			error |= (CAN1_NM_Engine.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_NM_Engine.raw.bytes, sizeof(CAN1_NM_Engine.raw.bytes)) != 0){
+				error = true;
+			}
 
 
 			CAN1sig_SleepInd.setValue(1);
 
 			expectedmsg = 0x0000000000001000;
 			CAN1_NM_Engine.send();
-			error |= (CAN1_NM_Engine.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_NM_Engine.raw.bytes, sizeof(CAN1_NM_Engine.raw.bytes)) != 0){
+				error = true;
+			}
+
 
 			//// FloatExample
 
 			CAN1sig_SingleExample.setValue(1234.1234);
 			CAN1sig_SingleExample2.setValue(4321.4312);
 
-			expectedmsg = 0;// TODO
+			expectedmsg = 0xced0e1a2cfc25922;
 			CAN1_FloatExample.send();
 
-			error |= (CAN1_FloatExample.raw != expectedmsg);
+			if (memcmp ( &expectedmsg, CAN1_FloatExample.raw.bytes, sizeof(CAN1_FloatExample.raw.bytes)) != 0){
+				error = true;
+			}
 
 			//// FloatExample2
 			CAN1sig_DoubleExample.setValue(4567.4567);
 
-			expectedmsg = 0;// TODO
+			expectedmsg = 0x40b1d774ea4a8c15;
 			CAN1_FloatExample2.send();
-			error |= (CAN1_FloatExample2.raw != expectedmsg);
+
+			if (memcmp ( &expectedmsg, CAN1_FloatExample2.raw.bytes, sizeof(CAN1_FloatExample2.raw.bytes)) != 0){
+				error = true;
+			}
 
 
 			break;
 
 		case ReceiveTesting:
 			error = false;
+			uint64_t testmsg;
 
 
 			//// Ignition_Info
-			CAN1_Ignition_Info.raw = 0x0000000000001784;
+			testmsg = 0x0000000000001784;
+			memcpy(CAN1_Ignition_Info.raw.bytes, &testmsg, sizeof CAN1_Ignition_Info.raw.bytes);
 			CAN1_Ignition_Info.receive();
 
 			error |= (CAN1sig_StarterKey.getValue() != 1);
 
-			CAN1_Ignition_Info.raw = 0x0000000000009d31;
+			//CAN1_Ignition_Info.raw = 0x0000000000009d31;
+			testmsg = 0x0000000000009d31;
+			memcpy(CAN1_Ignition_Info.raw.bytes, &testmsg, sizeof CAN1_Ignition_Info.raw.bytes);
 			CAN1_Ignition_Info.receive();
 
 			error |= (CAN1sig_StarterKey.getValue() != 0);
 
 
 			//// MultiplexExample
-			CAN1_MultiplexExample.raw = 0xe797a6e9c062d900;
+			//CAN1_MultiplexExample.raw = 0xe797a6e9c062d900;
+			testmsg = 0xe797a6e9c062d900;
+			memcpy(CAN1_MultiplexExample.raw.bytes, &testmsg, sizeof CAN1_MultiplexExample.raw.bytes);
 			CAN1_MultiplexExample.receive();
 
 			error |= (CAN1sig_EXSignal1.getValue() != 0);
 			//error |= (CAN1sig_EXSignal5.getValue() != -23); Signal not declared as RX
 
-			CAN1_MultiplexExample.raw = 0xb1e1e4eb60af8201;
+			//CAN1_MultiplexExample.raw = 0xb1e1e4eb60af8201;
+			testmsg = 0xb1e1e4eb60af8201;
+			memcpy(CAN1_MultiplexExample.raw.bytes, &testmsg, sizeof CAN1_MultiplexExample.raw.bytes);
 			CAN1_MultiplexExample.receive();
 
 			error |= (CAN1sig_EXSignal1.getValue() != 1);
 
-			CAN1_MultiplexExample.raw = 0x7e0868676c2b0004;
+			//CAN1_MultiplexExample.raw = 0x7e0868676c2b0004;
+			testmsg = 0x7e0868676c2b0004;
+			memcpy(CAN1_MultiplexExample.raw.bytes, &testmsg, sizeof CAN1_MultiplexExample.raw.bytes);
 			CAN1_MultiplexExample.receive();
 
 			error |= (CAN1sig_EXSignal1.getValue() != 4);
@@ -387,7 +443,9 @@ void StartDefaultTask(void *argument)
 			error |= (CAN1sig_EXSignal4.getValue() != 108);
 			//error |= (CAN1sig_EXSignal6.getValue() != 104); Signal not declared as RX
 
-			CAN1_MultiplexExample.raw = 0xe74aa821e19e0104;
+			//CAN1_MultiplexExample.raw = 0xe74aa821e19e0104;
+			testmsg = 0xe74aa821e19e0104;
+			memcpy(CAN1_MultiplexExample.raw.bytes, &testmsg, sizeof CAN1_MultiplexExample.raw.bytes);
 			CAN1_MultiplexExample.receive();
 
 			error |= (CAN1sig_EXSignal1.getValue() != 4);

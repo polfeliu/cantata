@@ -32,7 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "cantata.h"
+#include "cantataCAN1.h"
 #include "STM32CANCallbacks.h"
 /* USER CODE END Includes */
 

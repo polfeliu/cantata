@@ -13,8 +13,10 @@
 #endif
 #include <stdint.h> 
 #include "stdbool.h"
+#include "string.h"
+
 #include "FreeRTOS.h"
-#include "task.h"
+#include "task.h" 
 
 typedef float single;
 
@@ -32,9 +34,9 @@ void CAN1_InteractionLayerStart(void);
  * CAN Filters: CAN Filters filter and mask
  */
 
-// PassRatio: 0.8  // Messages that this ECU Reads
-// MatchedRatio: 0.8  // Messages that the Filters lets pass
-// Efficiency: 1.0  // Effiency of the filter (passRation/matchedRatio)
+// PassRatio: 80.0 %  // Messages that this ECU Reads
+// MatchedRatio: 80.0 %  // Messages that the Filters lets pass
+// Efficiency: 100.0 %  // Effiency of the filter (passRation/matchedRatio)
 
 #define CAN1_StandardFilter   0b00010110001
 #define CAN1_StandardMask     0b10000001000
@@ -48,7 +50,7 @@ void CAN1_InteractionLayerStart(void);
  */
 
 
-void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC);
+void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended);
 
 /*
  * Enum definitions for CANbyteorder_t
@@ -672,324 +674,244 @@ struct CAN1_FloatExample4_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const receive)(void);
-    const struct CAN1_FloatExample4_signals_t{
-        const struct{
-            const struct CAN1sig_DoubleExample2_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_FloatExample4raw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_FloatExample4raw_DoubleExample2_s{
+            uint64_t sig: 64;
         }CAN1sig_DoubleExample2;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_FloatExample3_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const receive)(void);
-    const struct CAN1_FloatExample3_signals_t{
-        const struct{
-            const struct CAN1sig_SingleExample3_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_FloatExample3raw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_FloatExample3raw_SingleExample3_s{
+            uint64_t sig: 32;
         }CAN1sig_SingleExample3;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_FloatExample2_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
-    const struct CAN1_FloatExample2_signals_t{
-        const struct{
-            const struct CAN1sig_DoubleExample_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_FloatExample2raw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_FloatExample2raw_DoubleExample_s{
+            uint64_t sig: 64;
         }CAN1sig_DoubleExample;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_FloatExample_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
-    const struct CAN1_FloatExample_signals_t{
-        const struct{
-            const struct CAN1sig_SingleExample_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_FloatExampleraw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_FloatExampleraw_SingleExample_s{
+            uint64_t sig: 32;
         }CAN1sig_SingleExample;
-
-        const struct{
-            const struct CAN1sig_SingleExample2_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_FloatExampleraw_SingleExample2_s{
+            uint64_t pad1: 32;
+            uint64_t sig: 32;
         }CAN1sig_SingleExample2;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_ABSdata_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
-    const struct CAN1_ABSdata_signals_t{
-        const struct{
-            const struct CAN1sig_CarSpeed_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_ABSdataraw_u{
+        uint8_t bytes[6];
+        struct __attribute__((__packed__)) CAN1_ABSdataraw_CarSpeed_s{
+            uint64_t sig: 10;
         }CAN1sig_CarSpeed;
-
-        const struct{
-            const struct CAN1sig_GearLock_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_ABSdataraw_GearLock_s{
+            uint64_t pad1: 10;
+            uint64_t sig: 1;
         }CAN1sig_GearLock;
-
-        const struct{
-            const struct CAN1sig_Diagnostics_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_ABSdataraw_Diagnostics_s{
+            uint64_t pad1: 16;
+            uint64_t sig: 8;
         }CAN1sig_Diagnostics;
-
-        const struct{
-            const struct CAN1sig_AccelerationForce_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_ABSdataraw_AccelerationForce_s{
+            uint64_t pad1: 32;
+            uint64_t sig: 16;
         }CAN1sig_AccelerationForce;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_MultiplexExample2_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
-    const struct CAN1_MultiplexExample2_signals_t{
-        const struct{
-            const struct CAN1sig_ExSignal7_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_MultiplexExample2raw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_MultiplexExample2raw_ExSignal7_s{
+            uint64_t sig: 8;
         }CAN1sig_ExSignal7;
-
-        const struct{
-            const struct CAN1sig_ExSignal7_t *multiplexor;
-            const int32_t multiplexValues[1];
-            const struct CAN1sig_ExSignal8_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_MultiplexExample2raw_ExSignal8_s{
+            uint64_t pad1: 8;
+            uint64_t sig: 8;
         }CAN1sig_ExSignal8;
-
-        const struct{
-            const struct CAN1sig_ExSignal8_t *multiplexor;
-            const int32_t multiplexValues[1];
-            const struct CAN1sig_ExSignal9_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_MultiplexExample2raw_ExSignal9_s{
+            uint64_t pad1: 16;
+            uint64_t sig: 8;
         }CAN1sig_ExSignal9;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_MultiplexExample_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const receive)(void);
-    const struct CAN1_MultiplexExample_signals_t{
-        const struct{
-            const struct CAN1sig_EXSignal1_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_MultiplexExampleraw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_MultiplexExampleraw_EXSignal1_s{
+            uint64_t sig: 8;
         }CAN1sig_EXSignal1;
-
-        const struct{
-            const struct CAN1sig_EXSignal1_t *multiplexor;
-            const int32_t multiplexValues[1];
-            const struct CAN1sig_EXSignal2_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_MultiplexExampleraw_EXSignal2_s{
+            uint64_t pad1: 8;
+            uint64_t sig: 8;
         }CAN1sig_EXSignal2;
-
-        const struct{
-            const struct CAN1sig_EXSignal1_t *multiplexor;
-            const int32_t multiplexValues[1];
-            const struct CAN1sig_EXSignal3_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_MultiplexExampleraw_EXSignal3_s{
+            uint64_t pad1: 16;
+            uint64_t sig: 8;
         }CAN1sig_EXSignal3;
-
-        const struct{
-            const struct CAN1sig_EXSignal2_t *multiplexor;
-            const int32_t multiplexValues[1];
-            const struct CAN1sig_EXSignal4_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_MultiplexExampleraw_EXSignal4_s{
+            uint64_t pad1: 24;
+            uint64_t sig: 8;
         }CAN1sig_EXSignal4;
-
         //EXSignal5 is not mapped to this ECU
 
         //EXSignal6 is not mapped to this ECU
 
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_Ignition_Info_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const receive)(void);
-    const struct CAN1_Ignition_Info_signals_t{
-        const struct{
-            const struct CAN1sig_StarterKey_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_Ignition_Inforaw_u{
+        uint8_t bytes[2];
+        struct __attribute__((__packed__)) CAN1_Ignition_Inforaw_StarterKey_s{
+            uint64_t pad1: 7;
+            uint64_t sig: 1;
         }CAN1sig_StarterKey;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_NM_Engine_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
-    const struct CAN1_NM_Engine_signals_t{
-        const struct{
-            const struct CAN1sig_SleepInd_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_NM_Engineraw_u{
+        uint8_t bytes[4];
+        struct __attribute__((__packed__)) CAN1_NM_Engineraw_SleepInd_s{
+            uint64_t pad1: 12;
+            uint64_t sig: 1;
         }CAN1sig_SleepInd;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_GearBoxInfo_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
-    const struct CAN1_GearBoxInfo_signals_t{
-        const struct{
-            const struct CAN1sig_GearLock_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_GearBoxInforaw_u{
+        uint8_t bytes[1];
+        struct __attribute__((__packed__)) CAN1_GearBoxInforaw_GearLock_s{
+            uint64_t pad1: 4;
+            uint64_t sig: 1;
         }CAN1sig_GearLock;
-
-        const struct{
-            const struct CAN1sig_ShiftRequest_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_GearBoxInforaw_ShiftRequest_s{
+            uint64_t pad1: 5;
+            uint64_t sig: 1;
         }CAN1sig_ShiftRequest;
-
-        const struct{
-            const struct CAN1sig_Gear_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_GearBoxInforaw_Gear_s{
+            uint64_t sig: 3;
         }CAN1sig_Gear;
-
-        const struct{
-            const struct CAN1sig_EcoMode_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_GearBoxInforaw_EcoMode_s{
+            uint64_t pad1: 6;
+            uint64_t sig: 2;
         }CAN1sig_EcoMode;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_EngineStatus_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
-    const struct CAN1_EngineStatus_signals_t{
-        const struct{
-            const struct CAN1sig_Status_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_EngineStatusraw_u{
+        uint8_t bytes[1];
+        struct __attribute__((__packed__)) CAN1_EngineStatusraw_Status_s{
+            uint64_t sig: 2;
         }CAN1sig_Status;
-
-        const struct{
-            const struct CAN1sig_ErrorCode_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_EngineStatusraw_ErrorCode_s{
+            uint64_t pad1: 2;
+            uint64_t sig: 6;
         }CAN1sig_ErrorCode;
-
-    }signals;
+    }raw;
 };
 // Comment: None
 struct CAN1_EngineData_t{
     const uint32_t ID;
     const bool is_extended;
     const uint8_t DLC;
-    uint64_t raw;
     void (*const send)(void);
     const uint32_t repetitions;
     uint32_t repetitionsleft;
-    const struct CAN1_EngineData_signals_t{
-        const struct{
-            const struct CAN1sig_EngSpeed_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+    union CAN1_EngineDataraw_u{
+        uint8_t bytes[8];
+        struct __attribute__((__packed__)) CAN1_EngineDataraw_EngSpeed_s{
+            uint64_t sig: 16;
         }CAN1sig_EngSpeed;
-
-        const struct{
-            const struct CAN1sig_EngTemp_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_EngineDataraw_EngTemp_s{
+            uint64_t pad1: 16;
+            uint64_t sig: 7;
         }CAN1sig_EngTemp;
-
-        const struct{
-            const struct CAN1sig_IdleRunning_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_EngineDataraw_IdleRunning_s{
+            uint64_t pad1: 23;
+            uint64_t sig: 1;
         }CAN1sig_IdleRunning;
-
-        const struct{
-            const struct CAN1sig_PetrolLevel_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_EngineDataraw_PetrolLevel_s{
+            uint64_t pad1: 24;
+            uint64_t sig: 8;
         }CAN1sig_PetrolLevel;
-
-        const struct{
-            const struct CAN1sig_EngForce_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_EngineDataraw_EngForce_s{
+            uint64_t pad1: 32;
+            uint64_t sig: 16;
         }CAN1sig_EngForce;
-
-        const struct{
-            const struct CAN1sig_EngPower_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
+        struct __attribute__((__packed__)) CAN1_EngineDataraw_EngPower_s{
+            uint64_t pad1: 48;
+            uint64_t sig: 16;
         }CAN1sig_EngPower;
-
-    }signals;
+    }raw;
 };
 
 #ifdef __cplusplus

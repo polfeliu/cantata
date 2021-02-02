@@ -5,7 +5,8 @@
  * @link https://github.com/polfeliu/cantata
  ******************************************************************************
  */
-#include "cantata.h"
+
+#include "cantataCAN1.h" 
 #include "STM32CANCallbacks.h" 
 
 uint64_t reverseBits(uint64_t num, uint8_t NO_OF_BITS)
@@ -367,30 +368,30 @@ void CAN1_InteractionLayerStop(){
  * CAN Callbacks: Receive Callback function. This function should be called when a new message arrives. The function automatically identifies the message and unpacks it into the signals
  */
 
-void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
+void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended){
     if((ID > 0x1FFFFFFF) & is_extended){
         //invalid extended identifier
     }else if((ID > 0x7FF) & !is_extended){
         //invalid standard identifier
     }
 
-    else if((ID==CAN1_FloatExample4.ID) & (is_extended==CAN1_FloatExample4.is_extended)){
-        CAN1_FloatExample4.raw = data;
+    else if((ID==CAN1_FloatExample4.ID) & (is_extended==CAN1_FloatExample4.is_extended) & (DLC==CAN1_FloatExample4.DLC)){
+        memcpy(CAN1_FloatExample4.raw.bytes, data, sizeof CAN1_FloatExample4.raw.bytes);
         CAN1_FloatExample4.receive();
     }
 
-    else if((ID==CAN1_FloatExample3.ID) & (is_extended==CAN1_FloatExample3.is_extended)){
-        CAN1_FloatExample3.raw = data;
+    else if((ID==CAN1_FloatExample3.ID) & (is_extended==CAN1_FloatExample3.is_extended) & (DLC==CAN1_FloatExample3.DLC)){
+        memcpy(CAN1_FloatExample3.raw.bytes, data, sizeof CAN1_FloatExample3.raw.bytes);
         CAN1_FloatExample3.receive();
     }
 
-    else if((ID==CAN1_MultiplexExample.ID) & (is_extended==CAN1_MultiplexExample.is_extended)){
-        CAN1_MultiplexExample.raw = data;
+    else if((ID==CAN1_MultiplexExample.ID) & (is_extended==CAN1_MultiplexExample.is_extended) & (DLC==CAN1_MultiplexExample.DLC)){
+        memcpy(CAN1_MultiplexExample.raw.bytes, data, sizeof CAN1_MultiplexExample.raw.bytes);
         CAN1_MultiplexExample.receive();
     }
 
-    else if((ID==CAN1_Ignition_Info.ID) & (is_extended==CAN1_Ignition_Info.is_extended)){
-        CAN1_Ignition_Info.raw = data;
+    else if((ID==CAN1_Ignition_Info.ID) & (is_extended==CAN1_Ignition_Info.is_extended) & (DLC==CAN1_Ignition_Info.DLC)){
+        memcpy(CAN1_Ignition_Info.raw.bytes, data, sizeof CAN1_Ignition_Info.raw.bytes);
         CAN1_Ignition_Info.receive();
     }
 
@@ -1363,183 +1364,183 @@ static void CAN1sig_EngPower_setRaw(uint16_t raw){
 
 static void CAN1_FloatExample4_receive(){
 
-CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits((CAN1_FloatExample4.raw >> CAN1_FloatExample4.signals.CAN1sig_DoubleExample2.startbit) & CAN1_FloatExample4.signals.CAN1sig_DoubleExample2.mask, CAN1sig_DoubleExample2.length));
+CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits(CAN1_FloatExample4.raw.CAN1sig_DoubleExample2.sig, CAN1sig_DoubleExample2.length));
     
 };
 static void CAN1_FloatExample3_receive(){
 
-CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits((CAN1_FloatExample3.raw >> CAN1_FloatExample3.signals.CAN1sig_SingleExample3.startbit) & CAN1_FloatExample3.signals.CAN1sig_SingleExample3.mask, CAN1sig_SingleExample3.length));
+CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits(CAN1_FloatExample3.raw.CAN1sig_SingleExample3.sig, CAN1sig_SingleExample3.length));
     
 };
 static void CAN1_FloatExample2_send(){
-    CAN1_FloatExample2.raw = 0;
+    memset (CAN1_FloatExample2.raw.bytes,0,sizeof CAN1_FloatExample2.raw.bytes);
 
-    CAN1_FloatExample2.raw |= (uint64_t) ((uint64_t) DoubleToUint64(CAN1sig_DoubleExample.raw) & CAN1_FloatExample2.signals.CAN1sig_DoubleExample.mask) << CAN1_FloatExample2.signals.CAN1sig_DoubleExample.startbit;
+    CAN1_FloatExample2.raw.CAN1sig_DoubleExample.sig = DoubleToUint64(CAN1sig_DoubleExample.raw);
     CAN1sig_DoubleExample.sent = true;
 
     CAN1_SendCallback(
-        CAN1_FloatExample2.raw,
+        CAN1_FloatExample2.raw.bytes,
+        CAN1_FloatExample2.DLC,
         CAN1_FloatExample2.ID,
-        CAN1_FloatExample2.is_extended,
-        CAN1_FloatExample2.DLC
+        CAN1_FloatExample2.is_extended
     );
 };
 
 static void CAN1_FloatExample_send(){
-    CAN1_FloatExample.raw = 0;
+    memset (CAN1_FloatExample.raw.bytes,0,sizeof CAN1_FloatExample.raw.bytes);
 
-    CAN1_FloatExample.raw |= (uint64_t) ((uint64_t) reverseBits(SingleToUint32(CAN1sig_SingleExample.raw),  CAN1sig_SingleExample.length) & CAN1_FloatExample.signals.CAN1sig_SingleExample.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample.startbit;
+    CAN1_FloatExample.raw.CAN1sig_SingleExample.sig = reverseBits(SingleToUint32(CAN1sig_SingleExample.raw),  CAN1sig_SingleExample.length);
     CAN1sig_SingleExample.sent = true;
-    CAN1_FloatExample.raw |= (uint64_t) ((uint64_t) reverseBits(SingleToUint32(CAN1sig_SingleExample2.raw),  CAN1sig_SingleExample2.length) & CAN1_FloatExample.signals.CAN1sig_SingleExample2.mask) << CAN1_FloatExample.signals.CAN1sig_SingleExample2.startbit;
+    CAN1_FloatExample.raw.CAN1sig_SingleExample2.sig = reverseBits(SingleToUint32(CAN1sig_SingleExample2.raw),  CAN1sig_SingleExample2.length);
     CAN1sig_SingleExample2.sent = true;
 
     CAN1_SendCallback(
-        CAN1_FloatExample.raw,
+        CAN1_FloatExample.raw.bytes,
+        CAN1_FloatExample.DLC,
         CAN1_FloatExample.ID,
-        CAN1_FloatExample.is_extended,
-        CAN1_FloatExample.DLC
+        CAN1_FloatExample.is_extended
     );
 };
 
 static void CAN1_ABSdata_send(){
-    CAN1_ABSdata.raw = 0;
+    memset (CAN1_ABSdata.raw.bytes,0,sizeof CAN1_ABSdata.raw.bytes);
 
-    CAN1_ABSdata.raw |= (uint64_t) ((uint64_t) CAN1sig_CarSpeed.raw & CAN1_ABSdata.signals.CAN1sig_CarSpeed.mask) << CAN1_ABSdata.signals.CAN1sig_CarSpeed.startbit;
+    CAN1_ABSdata.raw.CAN1sig_CarSpeed.sig = CAN1sig_CarSpeed.raw;
     CAN1sig_CarSpeed.sent = true;
-    CAN1_ABSdata.raw |= (uint64_t) ((uint64_t) CAN1sig_GearLock.raw & CAN1_ABSdata.signals.CAN1sig_GearLock.mask) << CAN1_ABSdata.signals.CAN1sig_GearLock.startbit;
+    CAN1_ABSdata.raw.CAN1sig_GearLock.sig = CAN1sig_GearLock.raw;
     CAN1sig_GearLock.sent = true;
-    CAN1_ABSdata.raw |= (uint64_t) ((uint64_t) CAN1sig_Diagnostics.raw & CAN1_ABSdata.signals.CAN1sig_Diagnostics.mask) << CAN1_ABSdata.signals.CAN1sig_Diagnostics.startbit;
+    CAN1_ABSdata.raw.CAN1sig_Diagnostics.sig = CAN1sig_Diagnostics.raw;
     CAN1sig_Diagnostics.sent = true;
-    CAN1_ABSdata.raw |= (uint64_t) ((uint64_t) CAN1sig_AccelerationForce.raw & CAN1_ABSdata.signals.CAN1sig_AccelerationForce.mask) << CAN1_ABSdata.signals.CAN1sig_AccelerationForce.startbit;
+    CAN1_ABSdata.raw.CAN1sig_AccelerationForce.sig = CAN1sig_AccelerationForce.raw;
     CAN1sig_AccelerationForce.sent = true;
 
     CAN1_SendCallback(
-        CAN1_ABSdata.raw,
+        CAN1_ABSdata.raw.bytes,
+        CAN1_ABSdata.DLC,
         CAN1_ABSdata.ID,
-        CAN1_ABSdata.is_extended,
-        CAN1_ABSdata.DLC
+        CAN1_ABSdata.is_extended
     );
 };
 
 static void CAN1_MultiplexExample2_send(){
-    CAN1_MultiplexExample2.raw = 0;
+    memset (CAN1_MultiplexExample2.raw.bytes,0,sizeof CAN1_MultiplexExample2.raw.bytes);
 
-    CAN1_MultiplexExample2.raw |= (uint64_t) ((uint64_t) CAN1sig_ExSignal7.raw & CAN1_MultiplexExample2.signals.CAN1sig_ExSignal7.mask) << CAN1_MultiplexExample2.signals.CAN1sig_ExSignal7.startbit;
+    CAN1_MultiplexExample2.raw.CAN1sig_ExSignal7.sig = CAN1sig_ExSignal7.raw;
     CAN1sig_ExSignal7.sent = true;
 
     if(CAN1sig_ExSignal7.raw == 0){
-    CAN1_MultiplexExample2.raw |= (uint64_t) ((uint64_t) CAN1sig_ExSignal8.raw & CAN1_MultiplexExample2.signals.CAN1sig_ExSignal8.mask) << CAN1_MultiplexExample2.signals.CAN1sig_ExSignal8.startbit;
+    CAN1_MultiplexExample2.raw.CAN1sig_ExSignal8.sig = CAN1sig_ExSignal8.raw;
     CAN1sig_ExSignal8.sent = true;
 
     if(CAN1sig_ExSignal8.raw == 0){
-    CAN1_MultiplexExample2.raw |= (uint64_t) ((uint64_t) CAN1sig_ExSignal9.raw & CAN1_MultiplexExample2.signals.CAN1sig_ExSignal9.mask) << CAN1_MultiplexExample2.signals.CAN1sig_ExSignal9.startbit;
+    CAN1_MultiplexExample2.raw.CAN1sig_ExSignal9.sig = CAN1sig_ExSignal9.raw;
     CAN1sig_ExSignal9.sent = true;
     }
     }
 
     CAN1_SendCallback(
-        CAN1_MultiplexExample2.raw,
+        CAN1_MultiplexExample2.raw.bytes,
+        CAN1_MultiplexExample2.DLC,
         CAN1_MultiplexExample2.ID,
-        CAN1_MultiplexExample2.is_extended,
-        CAN1_MultiplexExample2.DLC
+        CAN1_MultiplexExample2.is_extended
     );
 };
 
 static void CAN1_MultiplexExample_receive(){
 
-CAN1sig_EXSignal1.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal1.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal1.mask;
+CAN1sig_EXSignal1.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal1.sig;
 
     if(CAN1sig_EXSignal1.raw == 4){
-CAN1sig_EXSignal2.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal2.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal2.mask;
+CAN1sig_EXSignal2.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal2.sig;
 
     if(CAN1sig_EXSignal2.raw == 0){
-CAN1sig_EXSignal4.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal4.mask;
+CAN1sig_EXSignal4.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal4.sig;
     }
-CAN1sig_EXSignal3.raw = (CAN1_MultiplexExample.raw >> CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.startbit) & CAN1_MultiplexExample.signals.CAN1sig_EXSignal3.mask;
+CAN1sig_EXSignal3.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal3.sig;
     }
     
 };
 static void CAN1_Ignition_Info_receive(){
 
-CAN1sig_StarterKey.raw = reverseBits((CAN1_Ignition_Info.raw >> CAN1_Ignition_Info.signals.CAN1sig_StarterKey.startbit) & CAN1_Ignition_Info.signals.CAN1sig_StarterKey.mask, CAN1sig_StarterKey.length);
+CAN1sig_StarterKey.raw = reverseBits(CAN1_Ignition_Info.raw.CAN1sig_StarterKey.sig, CAN1sig_StarterKey.length);
     
 };
 static void CAN1_NM_Engine_send(){
-    CAN1_NM_Engine.raw = 0;
+    memset (CAN1_NM_Engine.raw.bytes,0,sizeof CAN1_NM_Engine.raw.bytes);
 
-    CAN1_NM_Engine.raw |= (uint64_t) ((uint64_t) CAN1sig_SleepInd.raw & CAN1_NM_Engine.signals.CAN1sig_SleepInd.mask) << CAN1_NM_Engine.signals.CAN1sig_SleepInd.startbit;
+    CAN1_NM_Engine.raw.CAN1sig_SleepInd.sig = CAN1sig_SleepInd.raw;
     CAN1sig_SleepInd.sent = true;
 
     CAN1_SendCallback(
-        CAN1_NM_Engine.raw,
+        CAN1_NM_Engine.raw.bytes,
+        CAN1_NM_Engine.DLC,
         CAN1_NM_Engine.ID,
-        CAN1_NM_Engine.is_extended,
-        CAN1_NM_Engine.DLC
+        CAN1_NM_Engine.is_extended
     );
 };
 
 static void CAN1_GearBoxInfo_send(){
-    CAN1_GearBoxInfo.raw = 0;
+    memset (CAN1_GearBoxInfo.raw.bytes,0,sizeof CAN1_GearBoxInfo.raw.bytes);
 
-    CAN1_GearBoxInfo.raw |= (uint64_t) ((uint64_t) CAN1sig_GearLock.raw & CAN1_GearBoxInfo.signals.CAN1sig_GearLock.mask) << CAN1_GearBoxInfo.signals.CAN1sig_GearLock.startbit;
+    CAN1_GearBoxInfo.raw.CAN1sig_GearLock.sig = CAN1sig_GearLock.raw;
     CAN1sig_GearLock.sent = true;
-    CAN1_GearBoxInfo.raw |= (uint64_t) ((uint64_t) CAN1sig_ShiftRequest.raw & CAN1_GearBoxInfo.signals.CAN1sig_ShiftRequest.mask) << CAN1_GearBoxInfo.signals.CAN1sig_ShiftRequest.startbit;
+    CAN1_GearBoxInfo.raw.CAN1sig_ShiftRequest.sig = CAN1sig_ShiftRequest.raw;
     CAN1sig_ShiftRequest.sent = true;
-    CAN1_GearBoxInfo.raw |= (uint64_t) ((uint64_t) reverseBits(CAN1sig_Gear.raw,  CAN1sig_Gear.length) & CAN1_GearBoxInfo.signals.CAN1sig_Gear.mask) << CAN1_GearBoxInfo.signals.CAN1sig_Gear.startbit;
+    CAN1_GearBoxInfo.raw.CAN1sig_Gear.sig = reverseBits(CAN1sig_Gear.raw,  CAN1sig_Gear.length);
     CAN1sig_Gear.sent = true;
-    CAN1_GearBoxInfo.raw |= (uint64_t) ((uint64_t) CAN1sig_EcoMode.raw & CAN1_GearBoxInfo.signals.CAN1sig_EcoMode.mask) << CAN1_GearBoxInfo.signals.CAN1sig_EcoMode.startbit;
+    CAN1_GearBoxInfo.raw.CAN1sig_EcoMode.sig = CAN1sig_EcoMode.raw;
     CAN1sig_EcoMode.sent = true;
 
     CAN1_SendCallback(
-        CAN1_GearBoxInfo.raw,
+        CAN1_GearBoxInfo.raw.bytes,
+        CAN1_GearBoxInfo.DLC,
         CAN1_GearBoxInfo.ID,
-        CAN1_GearBoxInfo.is_extended,
-        CAN1_GearBoxInfo.DLC
+        CAN1_GearBoxInfo.is_extended
     );
 };
 
 static void CAN1_EngineStatus_send(){
-    CAN1_EngineStatus.raw = 0;
+    memset (CAN1_EngineStatus.raw.bytes,0,sizeof CAN1_EngineStatus.raw.bytes);
 
-    CAN1_EngineStatus.raw |= (uint64_t) ((uint64_t) CAN1sig_Status.raw & CAN1_EngineStatus.signals.CAN1sig_Status.mask) << CAN1_EngineStatus.signals.CAN1sig_Status.startbit;
+    CAN1_EngineStatus.raw.CAN1sig_Status.sig = CAN1sig_Status.raw;
     CAN1sig_Status.sent = true;
-    CAN1_EngineStatus.raw |= (uint64_t) ((uint64_t) CAN1sig_ErrorCode.raw & CAN1_EngineStatus.signals.CAN1sig_ErrorCode.mask) << CAN1_EngineStatus.signals.CAN1sig_ErrorCode.startbit;
+    CAN1_EngineStatus.raw.CAN1sig_ErrorCode.sig = CAN1sig_ErrorCode.raw;
     CAN1sig_ErrorCode.sent = true;
 
     CAN1_SendCallback(
-        CAN1_EngineStatus.raw,
+        CAN1_EngineStatus.raw.bytes,
+        CAN1_EngineStatus.DLC,
         CAN1_EngineStatus.ID,
-        CAN1_EngineStatus.is_extended,
-        CAN1_EngineStatus.DLC
+        CAN1_EngineStatus.is_extended
     );
 };
 
 static void CAN1_EngineData_send(){
-    CAN1_EngineData.raw = 0;
+    memset (CAN1_EngineData.raw.bytes,0,sizeof CAN1_EngineData.raw.bytes);
 
-    CAN1_EngineData.raw |= (uint64_t) ((uint64_t) CAN1sig_EngSpeed.raw & CAN1_EngineData.signals.CAN1sig_EngSpeed.mask) << CAN1_EngineData.signals.CAN1sig_EngSpeed.startbit;
+    CAN1_EngineData.raw.CAN1sig_EngSpeed.sig = CAN1sig_EngSpeed.raw;
     CAN1sig_EngSpeed.sent = true;
-    CAN1_EngineData.raw |= (uint64_t) ((uint64_t) CAN1sig_EngTemp.raw & CAN1_EngineData.signals.CAN1sig_EngTemp.mask) << CAN1_EngineData.signals.CAN1sig_EngTemp.startbit;
+    CAN1_EngineData.raw.CAN1sig_EngTemp.sig = CAN1sig_EngTemp.raw;
     CAN1sig_EngTemp.sent = true;
-    CAN1_EngineData.raw |= (uint64_t) ((uint64_t) CAN1sig_IdleRunning.raw & CAN1_EngineData.signals.CAN1sig_IdleRunning.mask) << CAN1_EngineData.signals.CAN1sig_IdleRunning.startbit;
+    CAN1_EngineData.raw.CAN1sig_IdleRunning.sig = CAN1sig_IdleRunning.raw;
     CAN1sig_IdleRunning.sent = true;
-    CAN1_EngineData.raw |= (uint64_t) ((uint64_t) CAN1sig_PetrolLevel.raw & CAN1_EngineData.signals.CAN1sig_PetrolLevel.mask) << CAN1_EngineData.signals.CAN1sig_PetrolLevel.startbit;
+    CAN1_EngineData.raw.CAN1sig_PetrolLevel.sig = CAN1sig_PetrolLevel.raw;
     CAN1sig_PetrolLevel.sent = true;
-    CAN1_EngineData.raw |= (uint64_t) ((uint64_t) CAN1sig_EngForce.raw & CAN1_EngineData.signals.CAN1sig_EngForce.mask) << CAN1_EngineData.signals.CAN1sig_EngForce.startbit;
+    CAN1_EngineData.raw.CAN1sig_EngForce.sig = CAN1sig_EngForce.raw;
     CAN1sig_EngForce.sent = true;
-    CAN1_EngineData.raw |= (uint64_t) ((uint64_t) CAN1sig_EngPower.raw & CAN1_EngineData.signals.CAN1sig_EngPower.mask) << CAN1_EngineData.signals.CAN1sig_EngPower.startbit;
+    CAN1_EngineData.raw.CAN1sig_EngPower.sig = CAN1sig_EngPower.raw;
     CAN1sig_EngPower.sent = true;
 
     CAN1_SendCallback(
-        CAN1_EngineData.raw,
+        CAN1_EngineData.raw.bytes,
+        CAN1_EngineData.DLC,
         CAN1_EngineData.ID,
-        CAN1_EngineData.is_extended,
-        CAN1_EngineData.DLC
+        CAN1_EngineData.is_extended
     );
 };
 
 /*
- * Messages: Message struct definitions
+ * Messages: Message structs definitions
  */
 
 
@@ -1549,323 +1550,129 @@ struct CAN1_FloatExample4_t CAN1_FloatExample4 = {
     .ID = 0xb1, //dec: 177
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .receive = CAN1_FloatExample4_receive,
-    .signals = {
-        .CAN1sig_DoubleExample2 = {
-            .signal = &CAN1sig_DoubleExample2,
-            .startbit = -48,
-            .mask = 0b1111111111111111111111111111111111111111111111111111111111111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_FloatExample3_t CAN1_FloatExample3 = {
     .ID = 0x132, //dec: 306
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .receive = CAN1_FloatExample3_receive,
-    .signals = {
-        .CAN1sig_SingleExample3 = {
-            .signal = &CAN1sig_SingleExample3,
-            .startbit = 0,
-            .mask = 0b11111111111111111111111111111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_FloatExample2_t CAN1_FloatExample2 = {
     .ID = 0x123, //dec: 291
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .send = CAN1_FloatExample2_send,
-    .signals = {
-        .CAN1sig_DoubleExample = {
-            .signal = &CAN1sig_DoubleExample,
-            .startbit = 0,
-            .mask = 0b1111111111111111111111111111111111111111111111111111111111111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_FloatExample_t CAN1_FloatExample = {
     .ID = 0xc01fefe, //dec: 201457406
     .is_extended = true,
     .DLC = 8,
-    .raw = 0,
     .send = CAN1_FloatExample_send,
-    .signals = {
-        .CAN1sig_SingleExample = {
-            .signal = &CAN1sig_SingleExample,
-            .startbit = 0,
-            .mask = 0b11111111111111111111111111111111
-        },
-        
-        .CAN1sig_SingleExample2 = {
-            .signal = &CAN1sig_SingleExample2,
-            .startbit = 32,
-            .mask = 0b11111111111111111111111111111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_ABSdata_t CAN1_ABSdata = {
     .ID = 0xc9, //dec: 201
     .is_extended = false,
     .DLC = 6,
-    .raw = 0,
     .send = CAN1_ABSdata_send,
     .repetitions = 3,
     .repetitionsleft = 0,
-    .signals = {
-        .CAN1sig_CarSpeed = {
-            .signal = &CAN1sig_CarSpeed,
-            .startbit = 0,
-            .mask = 0b1111111111
-        },
-        
-        .CAN1sig_GearLock = {
-            .signal = &CAN1sig_GearLock,
-            .startbit = 10,
-            .mask = 0b1
-        },
-        
-        .CAN1sig_Diagnostics = {
-            .signal = &CAN1sig_Diagnostics,
-            .startbit = 16,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_AccelerationForce = {
-            .signal = &CAN1sig_AccelerationForce,
-            .startbit = 32,
-            .mask = 0b1111111111111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_MultiplexExample2_t CAN1_MultiplexExample2 = {
     .ID = 0x301, //dec: 769
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .send = CAN1_MultiplexExample2_send,
     .repetitions = 5,
     .repetitionsleft = 0,
-    .signals = {
-        .CAN1sig_ExSignal7 = {
-            .signal = &CAN1sig_ExSignal7,
-            .startbit = 0,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_ExSignal8 = {
-            .multiplexor = &CAN1sig_ExSignal7,
-            .multiplexValues = {0},
-            .signal = &CAN1sig_ExSignal8,
-            .startbit = 8,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_ExSignal9 = {
-            .multiplexor = &CAN1sig_ExSignal8,
-            .multiplexValues = {0},
-            .signal = &CAN1sig_ExSignal9,
-            .startbit = 16,
-            .mask = 0b11111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_MultiplexExample_t CAN1_MultiplexExample = {
     .ID = 0x300, //dec: 768
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .receive = CAN1_MultiplexExample_receive,
-    .signals = {
-        .CAN1sig_EXSignal1 = {
-            .signal = &CAN1sig_EXSignal1,
-            .startbit = 0,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_EXSignal2 = {
-            .multiplexor = &CAN1sig_EXSignal1,
-            .multiplexValues = {4},
-            .signal = &CAN1sig_EXSignal2,
-            .startbit = 8,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_EXSignal3 = {
-            .multiplexor = &CAN1sig_EXSignal1,
-            .multiplexValues = {4},
-            .signal = &CAN1sig_EXSignal3,
-            .startbit = 16,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_EXSignal4 = {
-            .multiplexor = &CAN1sig_EXSignal2,
-            .multiplexValues = {0},
-            .signal = &CAN1sig_EXSignal4,
-            .startbit = 24,
-            .mask = 0b11111111
-        },
-        
-        //EXSignal5 is not mapped to this ECU
-
-        //EXSignal6 is not mapped to this ECU
-
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_Ignition_Info_t CAN1_Ignition_Info = {
     .ID = 0x67, //dec: 103
     .is_extended = false,
     .DLC = 2,
-    .raw = 0,
     .receive = CAN1_Ignition_Info_receive,
-    .signals = {
-        .CAN1sig_StarterKey = {
-            .signal = &CAN1sig_StarterKey,
-            .startbit = 7,
-            .mask = 0b1
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_NM_Engine_t CAN1_NM_Engine = {
     .ID = 0x51b, //dec: 1307
     .is_extended = false,
     .DLC = 4,
-    .raw = 0,
     .send = CAN1_NM_Engine_send,
-    .signals = {
-        .CAN1sig_SleepInd = {
-            .signal = &CAN1sig_SleepInd,
-            .startbit = 12,
-            .mask = 0b1
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_GearBoxInfo_t CAN1_GearBoxInfo = {
     .ID = 0x3fc, //dec: 1020
     .is_extended = false,
     .DLC = 1,
-    .raw = 0,
     .send = CAN1_GearBoxInfo_send,
     .repetitions = 3,
     .repetitionsleft = 0,
-    .signals = {
-        .CAN1sig_GearLock = {
-            .signal = &CAN1sig_GearLock,
-            .startbit = 4,
-            .mask = 0b1
-        },
-        
-        .CAN1sig_ShiftRequest = {
-            .signal = &CAN1sig_ShiftRequest,
-            .startbit = 5,
-            .mask = 0b1
-        },
-        
-        .CAN1sig_Gear = {
-            .signal = &CAN1sig_Gear,
-            .startbit = 0,
-            .mask = 0b111
-        },
-        
-        .CAN1sig_EcoMode = {
-            .signal = &CAN1sig_EcoMode,
-            .startbit = 6,
-            .mask = 0b11
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_EngineStatus_t CAN1_EngineStatus = {
     .ID = 0x65, //dec: 101
     .is_extended = false,
     .DLC = 1,
-    .raw = 0,
     .send = CAN1_EngineStatus_send,
     .repetitions = 10,
     .repetitionsleft = 0,
-    .signals = {
-        .CAN1sig_Status = {
-            .signal = &CAN1sig_Status,
-            .startbit = 0,
-            .mask = 0b11
-        },
-        
-        .CAN1sig_ErrorCode = {
-            .signal = &CAN1sig_ErrorCode,
-            .startbit = 2,
-            .mask = 0b111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 // Comment: None
 struct CAN1_EngineData_t CAN1_EngineData = {
     .ID = 0x64, //dec: 100
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .send = CAN1_EngineData_send,
     .repetitions = 10,
     .repetitionsleft = 0,
-    .signals = {
-        .CAN1sig_EngSpeed = {
-            .signal = &CAN1sig_EngSpeed,
-            .startbit = 0,
-            .mask = 0b1111111111111111
-        },
-        
-        .CAN1sig_EngTemp = {
-            .signal = &CAN1sig_EngTemp,
-            .startbit = 16,
-            .mask = 0b1111111
-        },
-        
-        .CAN1sig_IdleRunning = {
-            .signal = &CAN1sig_IdleRunning,
-            .startbit = 23,
-            .mask = 0b1
-        },
-        
-        .CAN1sig_PetrolLevel = {
-            .signal = &CAN1sig_PetrolLevel,
-            .startbit = 24,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_EngForce = {
-            .signal = &CAN1sig_EngForce,
-            .startbit = 32,
-            .mask = 0b1111111111111111
-        },
-        
-        .CAN1sig_EngPower = {
-            .signal = &CAN1sig_EngPower,
-            .startbit = 48,
-            .mask = 0b1111111111111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 

@@ -135,6 +135,10 @@ class cantata:
             passRatio = NpassIDs / Nidsall #wanted ratio of messages passing
             matchedratio = Nidsmatched/Nidsall # obtained ratio of messages passing
             efficiency = passRatio/matchedratio
+
+            passRatio = "%s %%" %(passRatio*100)
+            matchedratio = "%s %%" % (matchedratio * 100)
+            efficiency = "%s %%" % (efficiency * 100)
         except:
             passRatio = "NULL"
             matchedratio = "NULL"
@@ -251,7 +255,16 @@ class cantata:
         self.InteractionLayer['OnWriteOnChange'] = OnWriteOnChange
         self.InteractionLayer['CycleTimeFastMsg'] = CycleTimeFastMsg
 
+
+    def processNetwork(self):
+        from pprint import pprint
+        if 'BusType' in self.db.dbc.attributes:
+            self.BusType = self.db.dbc.attributes['BusType'].value
+        else:
+            self.BusType = "CAN"
+
     def process(self, node = None):
+        self.processNetwork()
         if node:
             found = False;
             for searchnode in self.db.nodes:
@@ -403,10 +416,11 @@ class cantata:
             sig["startbit"] = signal.start
 
             if signal.byte_order == "big_endian":
+
                 if sig['value_type'] == "single":
                     sig["startbit"] = sig["startbit"] - 7
                 elif sig['value_type'] == "double":
-                    sig["startbit"] = sig["startbit"] - 55
+                    sig["startbit"] = sig["startbit"] - 7
                 else:
                     sig["startbit"] = sig["startbit"] - signal.length + 1
 
@@ -414,6 +428,7 @@ class cantata:
 
             if sig['RX']:
                 frameRX = True
+
 
 
         fr["RX"] = frameRX
@@ -569,8 +584,10 @@ calculated maximum: %s
         globals["valuetables"] = self.valuetables;
         globals["InteractionLayer"] = self.InteractionLayer
         globals["filter"] = self.filter
+        globals["BusType"] = self.BusType
 
         globals["prefix"] = self.settings["prefix"]; #quicker acccess than settings
+
         srcfilename = "cantata%s.c" % self.settings['prefix']
         hdrfilename = "cantata%s.h" % self.settings['prefix']
 

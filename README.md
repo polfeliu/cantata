@@ -19,8 +19,10 @@ pipenv shell
 ```
 
 ## Usage
-To generate the files you can either edit the last part of main.py (that right now generates the test) or create a new python file and import the module from it.
-When creating the can object you will choose the prefix that all the objects will have. All the prefixes in this readme are "CAN1".
+Generating files from database is pretty simple, just create a python file. This must import the module, load the database, process it, and generates .c and .h files according to the choosen options.
+When creating the _cantata_ object a prefix must be passed, that will give the starting name of all objects in files (messages, signals, value tables...). All the prefixes in this readme are CAN1 for simplicity purposes.
+This important for ECU's that are connected to multiple buses, specially if objects in the database share names.  
+
 ```python
 from cantata import cantata
 can = cantata("CAN1") # create the object setting the prefix that will be used in all objects.
@@ -39,30 +41,36 @@ can.genFiles(src=src, hdr=hdr);
 can.reset() #you can reset the data to be able to generate a new Node in another place
 ```
 
-The function _process_ will extract the signals and frames of the database. The _node_ parameter passed indicates which node is the code for, meaning only the frames and signals necessary will be in the code. Also if the frame is TX it will only have send() method, and if it is RX it will be receive(). Signals will always have getValue() methods and only setValue() methods if they are TX. \
-Even though RX messages may have signals that are not RX declared in the database but are actually received they won't have an object to access them, forcing you to keep the database consistent if you want to access the signals ;). \
+The function _process_ will extract the signals and frames of the database. The _node_ parameter passed indicates which node is the code for, meaning only the frames and signals necessary will be in the code. 
+
+Frames transmitted by the ECU will only have send() method. Frames received will have only receive().\
+Signals will always have getValue() methods and only setValue() methods if they are TX. \
+Even though RX messages may have signals that are not RX declared in the database but are actually received they won't have an object to access them, forcing you to keep the database consistent if you want to access the signals ;). 
+
 If no node is passed to the process function (``` can.process()```) the function will calculate all the frames signals and methods. 
 
 ### Settings
-The generation library has a set of settings that are documented across this readme. They can be edited directly on the main.py or access them or after creating the instance
+The generation library has a set of settings that are documented across this readme. They can be changed from the default ones by accessing the settings dictionary
 
 ``` python
 can.settings["CallbackLib"] = "STM32CANCallbacks" #name of the library that implementes the Callback functions for this bus
 ```
 
 ### Mins and Max
-I've found that many databases tend to have the mins and maxs of signals not calculated, because in the CANdb++ editor you have to click a button to update them according to the factors, offsets and datatype. \
+I've found that many databases tend to have the mins and maxs of signals not calculated (because in the CANdb++ editor you have to click a button to update them).\
 To prevent mysterious errors when executing the program I programmed a cool optional feature: When you process a signal it checks that the mins and max are correct. If a signal fails the program halts and prints an error.\
 The function correctMinsMax() can be called before processing the node and it simply recalculates all the mins and maxs to the cache.
 To store the new mins and maxs you can call the function ``can.save("file")``.
+
+This check can be disabled by setting _checkminmax_ to False on the settings 
 
 ### Filters
 The library calculates a single hardware filter (filter and mask) for the RX messages of the node. This can be used to reduce the software load. The filters are declared in the header file
 
 ```c
-// PassRatio: 67%  // Messages that this ECU Reads
-// MatchedRatio: 67%  // Messages that the Filters lets pass
-// Efficiency: 100%  // Effiency of the filter (passRation/matchedRatio)
+// PassRatio: 67.0 %  // Messages that this ECU Reads
+// MatchedRatio: 67.0 %  // Messages that the Filters lets pass
+// Efficiency: 100.0 %  // Effiency of the filter (passRation/matchedRatio)
 
 #define CAN1_StandardFilter   0b01100000000
 #define CAN1_StandardMask     0b10010011000
@@ -74,7 +82,7 @@ More on CAN controller hardware filters: http://www.cse.dmu.ac.uk/~eg/tele/Canbu
 In the STM32CANCallbacks.c files there is an initialization of the CAN that includes the configuration of the bxCAN filter.
 
 ## Structure
-The library generates cantata.c and cantata.h files with structures and functions for the following objects.
+The library generates cantataCAN1.c and cantataCAN1.h files with structures and functions for the following objects.
 
 ![alt text](diagram.png)
 
@@ -140,14 +148,11 @@ CAN1sig_Status.setValue(CAN1sig_StatusVT_WakeUp);
 
 ### Frames
 Frames have similar structs with data from the database (ID, is_extended, DLC) and:
-* **raw**: holds the raw message
+* **raw**: Holds the raw message with union of bytes and raw signals structs. This shouldn't be used by the application.
 * **receive**: unpacks the raw message and store the values of the signals to the signals raw parameter. Signals with big endian encoding are reversed on this process.
-* **send**:  packs all the signals to the frame raw parameter and calls CAN1_SendCallback() with the frame calculated (more on that later)
-* **signals**: structures of the signals with start position inside the signal, a mask for the assembly of the frames and a pointer to the signal struct. Signals that are multiplexed by other signals have a pointer to the multiplexor signal and a list of the multiplexed values they are valid for.
-The pointer can be used to access the signals of a message like that:
-```c
-CAN1_NM_Engine.signals.CAN1sig_SleepInd.signal->setValue(34);
-```
+* **send**:  packs all the signals to the frame raw parameter and calls CAN1_SendCallback() with the frame calculated (more on that later). Also reverses bits of big endian signals.
+
+The code generation for receive and send methods support both multiplexing and extended multiplexing.
 
 If InteractionLayer is activated and the message contains a signal with repetitions, the constant parameter _repetitions_ is defined. Parameter _repetitionsleft_ indicates how many repetitions more will be sent. 
 ```c
@@ -156,44 +161,21 @@ struct CAN1_MultiplexExample2_t CAN1_MultiplexExample2 = {
     .ID = 0x301, //dec: 769
     .is_extended = false,
     .DLC = 8,
-    .raw = 0,
     .send = CAN1_MultiplexExample2_send,
     .repetitions = 5,
     .repetitionsleft = 0,
-    .signals = {
-        .CAN1sig_ExSignal7 = {
-            .signal = &CAN1sig_ExSignal7,
-            .startbit = 0,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_ExSignal8 = {
-            .multiplexor = &CAN1sig_ExSignal7,
-            .multiplexValues = {0},
-            .signal = &CAN1sig_ExSignal8,
-            .startbit = 8,
-            .mask = 0b11111111
-        },
-        
-        .CAN1sig_ExSignal9 = {
-            .multiplexor = &CAN1sig_ExSignal8,
-            .multiplexValues = {0},
-            .signal = &CAN1sig_ExSignal9,
-            .startbit = 16,
-            .mask = 0b11111111
-        },
-        
-    }
+    .raw = {
+        .bytes = {0}
+    },
 };
 ```
 send and receive methods can be used like that:
 ```c
 CAN1_NM_Engine.send()
 
-CAN1_NM_Engine.raw = data; #You must first update the raw value of the message with what you are receiving 
 CAN1_NM_Engine.receive();
 ```
-Receive method is typically used from the ReceiveCallback
+Before receiving data the raw value of the message struct should be updated, this method is typically used from the ReceiveCallback and already takes care of that.
 
 Send Method can be used from the application to decide when to send each frame. Optionally you can use the Interaction Layer that sends them without the application's intervention.
 
@@ -202,28 +184,28 @@ Send Method can be used from the application to decide when to send each frame. 
 The library also defines a receive callback (*CAN1_ReceiveCallback*) that can be used to handle incoming messages and store them in the respective structures according to the ID.
 When the driver receives a message it should call this function with the appropiate parameters. This function is driver agnostic and it is generated in the cantata file.
 ```c
-void CAN1_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC){
+void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended){
     if((ID > 0x1FFFFFFF) & is_extended){
         //invalid extended identifier
     }else if((ID > 0x7FF) & !is_extended){
         //invalid standard identifier
     }
 
-    else if((ID==CAN1_NM_Engine.ID) & (is_extended==CAN1_NM_Engine.is_extended)){
-        CAN1_NM_Engine.raw = data;
-        CAN1_NM_Engine.receive();
+    else if((ID==CAN1_FloatExample4.ID) & (is_extended==CAN1_FloatExample4.is_extended) & (DLC==CAN1_FloatExample4.DLC)){
+        memcpy(CAN1_FloatExample4.raw.bytes, data, sizeof CAN1_FloatExample4.raw.bytes);
+        CAN1_FloatExample4.receive();
     }
 
-    else if((ID==CAN1_NM_Gateway_PowerTrain.ID) & (is_extended==CAN1_NM_Gateway_PowerTrain.is_extended)){
-        CAN1_NM_Gateway_PowerTrain.raw = data;
-        CAN1_NM_Gateway_PowerTrain.receive();
+    else if((ID==CAN1_FloatExample3.ID) & (is_extended==CAN1_FloatExample3.is_extended) & (DLC==CAN1_FloatExample3.DLC)){
+        memcpy(CAN1_FloatExample3.raw.bytes, data, sizeof CAN1_FloatExample3.raw.bytes);
+        CAN1_FloatExample3.receive();
     }
 ```
 
-In the STM32CANCallbacks files there is an example on how to do this for STM32 using HAL.
+In the STM32CANCallbacks files there is an example on how to this function should be called on STM32 using HAL.
 #### Transmit
 You should define a Transmit (*CAN1_SendCallback*) callback so that the messages are sent after being assembled. \
-This function will be called with the *data, id, is_extended, DLC* parameters by each send() command.\
+This function will be called with the *data, DLC, ID, is_extended* parameters by each send() command.\
 An example of this is also included in the STM32CANCallbacks files.
 
 ## Interaction Layer

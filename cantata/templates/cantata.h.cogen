@@ -13,8 +13,15 @@
 #endif
 #include <stdint.h> 
 #include "stdbool.h"
+#include "string.h"
+/*[[[cog
+import cog
+if settings['FreeRTOSInteractionLayer']:
+    cog.out("""
 #include "FreeRTOS.h"
-#include "task.h"
+#include "task.h" """)
+]]]*/
+//[[[end]]]
 
 typedef float single;
 
@@ -64,10 +71,15 @@ if settings['calculateCANFilter']:
 /*[[[cog
 import cog
 if settings['CallbackLib'] is not None:
+    additionalparameters = ""
+    if BusType=="CAN FD":
+        additionalparameters += ", bool FDF, bool BRS"
+
     cog.out(
 """
-void %s_ReceiveCallback(uint64_t data, uint32_t ID, bool is_extended, uint8_t DLC);
-""" % (prefix));
+void %s_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended%s);
+""" %(prefix, additionalparameters));
+
 ]]]*/
 //[[[end]]]
 
@@ -225,8 +237,7 @@ for framename, frame in frames.items():
 struct %s_%s_t{
     const uint32_t ID;
     const bool is_extended;
-    const uint8_t DLC;
-    uint64_t raw;""" % (
+    const uint8_t DLC;""" % (
         frame['comment'],
         prefix,framename,
     ));
@@ -249,45 +260,53 @@ struct %s_%s_t{
     uint32_t repetitionsleft;"""
         %());
 
+    cog.out(
+"""
+    union %s_%sraw_u{
+        uint8_t bytes[%s];""" % (
+        prefix,framename,
+        frame['DLC'],
+    ));
 
-    cog.out("""
-    const struct %s_%s_signals_t{"""%(prefix, framename));
+    def generatedpadding(length):
+        padding = """""";
+        done = False;
+        counter = 1;
+        while(not done):
+            if length == 0:
+                done = True
+            elif length <= 64:
+                padding += """
+            uint64_t pad%s: %s;""" % (counter, length)
+                done = True;
+            else:
+                padding += """
+            uint64_t pad%s: %s;""" % (counter, 64)
+                length -= 64
+                counter += 1
+        return padding
+        
+        
 
     for signalname, signal in frame['signals'].items():
         if signal['RX']==False and signal['TX']==False:
             cog.outl("""
         //%s is not mapped to this ECU""" % (signalname))
         else:
-            cog.out(
-"""
-        const struct{""");
-            
-            if signal['multiplexor'] is not None:
-                cog.out(
-        """
-            const struct %ssig_%s_t *multiplexor;
-            const int32_t multiplexValues[%s];""" 
-            %(
-                prefix, signal['multiplexor'],
-                len(signal['multiplexValues'])
+            cog.out("""
+        struct __attribute__((__packed__)) %s_%sraw_%s_s{%s
+            uint64_t sig: %s;
+        }%ssig_%s;"""%(
+            prefix,framename, signalname,
+            generatedpadding(signal['startbit']),
+            signal['length'],
+            prefix, signalname
             ))
-
-            cog.out(
-            """
-            const struct %ssig_%s_t *signal;
-            const uint64_t startbit;
-            const uint64_t mask;
-        }%ssig_%s;
-"""         % (
-                prefix,signalname,
-                prefix,signalname
-            ));
-    5
 
     cog.out(
 """
-    }signals;
-};""");
+    }raw;
+};""" % ());
 
 
 ]]]*/
