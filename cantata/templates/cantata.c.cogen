@@ -804,11 +804,19 @@ static void %s_%s_receive(){
             prefix, framename
         ));
 
+        if settings['FreeRTOSCriticalSections']:
+            cog.out("""
+    portENTER_CRITICAL();""");
+
         for item in frame['signal_tree']:
             if type(item) == str: # then it is a signal
                 unpacksignal(framename=framename, signalname=item, signal=frame['signals'][item])
             else:
                 expandmultiplex(framename, item, mode="rx")
+
+        if settings['FreeRTOSCriticalSections']:
+            cog.out("""
+    portEXIT_CRITICAL();""");
 
         if settings['on_receive']:
             cog.out("""
@@ -822,13 +830,17 @@ static void %s_%s_receive(){
     if frame['TX']:
         cog.out(
 """
-static void %s_%s_send(){
-    memset (%s_%s.raw.bytes,0,sizeof %s_%s.raw.bytes);
-"""
-        % (
-            prefix, framename,
-            prefix, framename, prefix, framename
-        ));
+static void %s_%s_send(){"""
+        % ( prefix, framename));
+
+        if settings['FreeRTOSCriticalSections']:
+            cog.out("""
+    portENTER_CRITICAL();""");
+
+        cog.out("""
+    memset (%s_%s.raw.bytes,0,sizeof %s_%s.raw.bytes);"""
+        % ( prefix, framename, prefix, framename ));
+
 
         for item in frame['signal_tree']:
             if type(item) == str: 
@@ -836,6 +848,11 @@ static void %s_%s_send(){
             else:
                 expandmultiplex(framename, item, mode='tx')
         
+
+        if settings['FreeRTOSCriticalSections']:
+            cog.out("""
+    portEXIT_CRITICAL();""");
+            
         additionalparameters = ""
         if BusType=="CAN FD":
             additionalparameters += """,
