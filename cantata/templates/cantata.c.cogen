@@ -397,12 +397,17 @@ for framename, frame in frames.items():
 """
     else if((ID==%s_%s.ID) & (is_extended==%s_%s.is_extended) & (DLC==%s_%s.DLC)%s){
         memcpy(%s_%s.raw.bytes, data, sizeof %s_%s.raw.bytes);
-        %s_%s.receive();
-    }
-"""%(prefix, framename, prefix, framename, prefix, framename, additionalchecks,
+        %s_%s.receive();"""
+        %(prefix, framename, prefix, framename, prefix, framename, additionalchecks,
         prefix, framename, prefix, framename, 
         prefix, framename
-    ));
+        ));
+
+
+        cog.out("""
+    }""")
+
+
 cog.out("""
     else{
         //ID is not received by this ECU
@@ -799,12 +804,16 @@ static void %s_%s_receive(){
             prefix, framename
         ));
 
-
         for item in frame['signal_tree']:
             if type(item) == str: # then it is a signal
                 unpacksignal(framename=framename, signalname=item, signal=frame['signals'][item])
             else:
                 expandmultiplex(framename, item, mode="rx")
+
+        if settings['on_receive']:
+            cog.out("""
+
+    if(%s_%s.on_receive != NULL){%s_%s.on_receive();}""" % (prefix, framename, prefix, framename))
 
 
         cog.out("""
@@ -886,6 +895,11 @@ struct %s_%s_t %s_%s = {
         cog.out("""
     .receive = %s_%s_receive,"""
         %(prefix, framename));
+
+        if settings['on_receive']:
+            cog.out("""
+    .on_receive = NULL,""")
+
 
     if frame['TX']:
         cog.out("""

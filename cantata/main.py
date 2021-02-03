@@ -26,13 +26,13 @@ class Cantata:
         "checkminmax": True,  #checks if the min and max are correct according to the factors and offset. If they are not correct it will stop the program
         "CallbackLib": "STM32CANCallbacks",  #name of the library that implementes the Callback functions for this bus
         "FreeRTOSInteractionLayer": True,  #generates Interaction Layer with FreeRTOS according to the parameters set on the messages #TODO
-        "calculateCANFilter": True,  #Calculates a can Filter for the RX messages
+        "calculateCANFilter": True,  #Calculates a can Filter for the RX messages,
+        "on_receive": True,  #Include a pointer to a function on the message structs that is called when the messages are received.
     }
 
     # TODO Make Units optional
     # TODO Make Comment optional
     # TODO Option to make functions thread safe in FreeRTOS (portEnterCritical and portExitCritical)
-    # TODO InteractionLayer Bind to Message Received events to Messages received
     # TODO FreeRtos Initialization of signals and messages, how is this handled?
     # TODO Check usage of default values of attributes
 

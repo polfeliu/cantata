@@ -53,7 +53,6 @@ static CAN_TxHeaderTypeDef TxHeader = {
 		.TransmitGlobalTime = DISABLE
 };
 
-static uint8_t TxData[8];
 static uint32_t  pTxMailbox;
 
 
@@ -70,7 +69,8 @@ void CAN1_SendCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extende
 	TxHeader.DLC = DLC;
 
 	while(HAL_CAN_GetTxMailboxesFreeLevel(&CANHandle) == 0){//wait for a free mailbox
-		HAL_Delay(1);
+		//HAL_Delay(1); If not using FreeRTOS
+		vTaskDelay(pdMS_TO_TICKS(1));
 	}
 
 	HAL_CAN_AddTxMessage(
@@ -119,7 +119,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef*hcan){
 			ID = RxHeader.StdId;
 		}
 
-		CAN1_ReceiveCallback(data, ID, is_extended, DLC);
+		CAN1_ReceiveCallback(RxData, DLC, ID, is_extended);
 	}
 
 }

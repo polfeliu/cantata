@@ -149,8 +149,9 @@ CAN1sig_Status.setValue(CAN1sig_StatusVT_WakeUp);
 ### Frames
 Frames have similar structs with data from the database (ID, is_extended, DLC) and:
 * **raw**: Holds the raw message with union of bytes and raw signals structs. This shouldn't be used by the application.
-* **receive**: unpacks the raw message and store the values of the signals to the signals raw parameter. Signals with big endian encoding are reversed on this process.
-* **send**:  packs all the signals to the frame raw parameter and calls CAN1_SendCallback() with the frame calculated (more on that later). Also reverses bits of big endian signals.
+* **send**:  packs all the signals to the frame raw parameter and calls CAN1_SendCallback() with the frame calculated (more on that later). Also reverses bits of big endian signals. 
+* **receive**: unpacks the raw message and store the values of the signals to the signals raw parameter. Signals with big endian encoding are reversed on this process. 
+* **on_receive** Pointer to function that is called every time a message is received.
 
 The code generation for receive and send methods support both multiplexing and extended multiplexing.
 
@@ -185,6 +186,21 @@ CAN1_NM_Engine.receive();
 Before receiving data the raw value of the message struct should be updated, this method is typically used from the ReceiveCallback and already takes care of that.
 
 Send Method can be used from the application to decide when to send each frame. Optionally you can use the Interaction Layer that sends them without the application's intervention.
+
+On_receive can be used to notify the application that a particular message is received by declaring a custom function and bounding it to on_receive.
+
+```c
+void on_receive_MultiplexExample(){
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+}
+
+void main(){
+	CAN1_MultiplexExample.on_receive = &on_receive_MultiplexExample; // Bind custom function to on_receive function pointer
+    ...
+}
+```
+
+
 
 ### CallBacks
 #### Receive

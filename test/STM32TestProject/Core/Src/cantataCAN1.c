@@ -379,22 +379,18 @@ void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_exte
         memcpy(CAN1_FloatExample4.raw.bytes, data, sizeof CAN1_FloatExample4.raw.bytes);
         CAN1_FloatExample4.receive();
     }
-
     else if((ID==CAN1_FloatExample3.ID) & (is_extended==CAN1_FloatExample3.is_extended) & (DLC==CAN1_FloatExample3.DLC)){
         memcpy(CAN1_FloatExample3.raw.bytes, data, sizeof CAN1_FloatExample3.raw.bytes);
         CAN1_FloatExample3.receive();
     }
-
     else if((ID==CAN1_MultiplexExample.ID) & (is_extended==CAN1_MultiplexExample.is_extended) & (DLC==CAN1_MultiplexExample.DLC)){
         memcpy(CAN1_MultiplexExample.raw.bytes, data, sizeof CAN1_MultiplexExample.raw.bytes);
         CAN1_MultiplexExample.receive();
     }
-
     else if((ID==CAN1_Ignition_Info.ID) & (is_extended==CAN1_Ignition_Info.is_extended) & (DLC==CAN1_Ignition_Info.DLC)){
         memcpy(CAN1_Ignition_Info.raw.bytes, data, sizeof CAN1_Ignition_Info.raw.bytes);
         CAN1_Ignition_Info.receive();
     }
-
     else{
         //ID is not received by this ECU
     }
@@ -1365,11 +1361,15 @@ static void CAN1sig_EngPower_setRaw(uint16_t raw){
 static void CAN1_FloatExample4_receive(){
 
     CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits(CAN1_FloatExample4.raw.CAN1sig_DoubleExample2.sig, CAN1sig_DoubleExample2.length));
+
+    if(CAN1_FloatExample4.on_receive != NULL){CAN1_FloatExample4.on_receive();}
     
 };
 static void CAN1_FloatExample3_receive(){
 
     CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits(CAN1_FloatExample3.raw.CAN1sig_SingleExample3.sig, CAN1sig_SingleExample3.length));
+
+    if(CAN1_FloatExample3.on_receive != NULL){CAN1_FloatExample3.on_receive();}
     
 };
 static void CAN1_FloatExample2_send(){
@@ -1458,11 +1458,15 @@ static void CAN1_MultiplexExample_receive(){
     }
     CAN1sig_EXSignal3.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal3.sig;
     }
+
+    if(CAN1_MultiplexExample.on_receive != NULL){CAN1_MultiplexExample.on_receive();}
     
 };
 static void CAN1_Ignition_Info_receive(){
 
     CAN1sig_StarterKey.raw = reverseBits(CAN1_Ignition_Info.raw.CAN1sig_StarterKey.sig, CAN1sig_StarterKey.length);
+
+    if(CAN1_Ignition_Info.on_receive != NULL){CAN1_Ignition_Info.on_receive();}
     
 };
 static void CAN1_NM_Engine_send(){
@@ -1551,6 +1555,7 @@ struct CAN1_FloatExample4_t CAN1_FloatExample4 = {
     .is_extended = false,
     .DLC = 8,
     .receive = CAN1_FloatExample4_receive,
+    .on_receive = NULL,
     .raw = {
         .bytes = {0}
     },
@@ -1561,6 +1566,7 @@ struct CAN1_FloatExample3_t CAN1_FloatExample3 = {
     .is_extended = false,
     .DLC = 8,
     .receive = CAN1_FloatExample3_receive,
+    .on_receive = NULL,
     .raw = {
         .bytes = {0}
     },
@@ -1615,6 +1621,7 @@ struct CAN1_MultiplexExample_t CAN1_MultiplexExample = {
     .is_extended = false,
     .DLC = 8,
     .receive = CAN1_MultiplexExample_receive,
+    .on_receive = NULL,
     .raw = {
         .bytes = {0}
     },
@@ -1625,6 +1632,7 @@ struct CAN1_Ignition_Info_t CAN1_Ignition_Info = {
     .is_extended = false,
     .DLC = 2,
     .receive = CAN1_Ignition_Info_receive,
+    .on_receive = NULL,
     .raw = {
         .bytes = {0}
     },

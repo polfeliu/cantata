@@ -30,17 +30,16 @@ import cog
 if settings['FreeRTOSInteractionLayer']:
     cog.out("""
 /*
- * Interaction Layer: Start function prototype
+ * Interaction Layer: Start and Stop function prototypes
  */
         """);
 
     cog.out("""
 void %s_InteractionLayerStart(void);
-    """ % prefix)
+void %s_InteractionLayerStop(void);
+    """ % (prefix, prefix))
 ]]]*/
 //[[[end]]]
-
-
 /*[[[cog
 import cog
 if settings['calculateCANFilter']:
@@ -247,6 +246,9 @@ struct %s_%s_t{
         cog.out("""
     void (*const receive)(void);"""
         %());
+        if settings['on_receive']:
+            cog.out("""
+    void (*on_receive)(void);""")
 
     if frame['TX']:
         cog.out("""

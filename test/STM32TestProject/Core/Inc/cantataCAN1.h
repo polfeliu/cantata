@@ -22,13 +22,12 @@ typedef float single;
 
 
 /*
- * Interaction Layer: Start function prototype
+ * Interaction Layer: Start and Stop function prototypes
  */
         
 void CAN1_InteractionLayerStart(void);
+void CAN1_InteractionLayerStop(void);
     
-
-
 
 /*
  * CAN Filters: CAN Filters filter and mask
@@ -675,6 +674,7 @@ struct CAN1_FloatExample4_t{
     const bool is_extended;
     const uint8_t DLC;
     void (*const receive)(void);
+    void (*on_receive)(void);
     union CAN1_FloatExample4raw_u{
         uint8_t bytes[8];
         struct __attribute__((__packed__)) CAN1_FloatExample4raw_DoubleExample2_s{
@@ -688,6 +688,7 @@ struct CAN1_FloatExample3_t{
     const bool is_extended;
     const uint8_t DLC;
     void (*const receive)(void);
+    void (*on_receive)(void);
     union CAN1_FloatExample3raw_u{
         uint8_t bytes[8];
         struct __attribute__((__packed__)) CAN1_FloatExample3raw_SingleExample3_s{
@@ -781,6 +782,7 @@ struct CAN1_MultiplexExample_t{
     const bool is_extended;
     const uint8_t DLC;
     void (*const receive)(void);
+    void (*on_receive)(void);
     union CAN1_MultiplexExampleraw_u{
         uint8_t bytes[8];
         struct __attribute__((__packed__)) CAN1_MultiplexExampleraw_EXSignal1_s{
@@ -810,6 +812,7 @@ struct CAN1_Ignition_Info_t{
     const bool is_extended;
     const uint8_t DLC;
     void (*const receive)(void);
+    void (*on_receive)(void);
     union CAN1_Ignition_Inforaw_u{
         uint8_t bytes[2];
         struct __attribute__((__packed__)) CAN1_Ignition_Inforaw_StarterKey_s{

@@ -135,13 +135,18 @@ enum{
 	IfActive,
 	IfActiveWithRepetitions,
 	TransmitTesting,
-	ReceiveTesting
+	ReceiveTesting,
 } InteractionLayerDemo;
 
 
 extern TaskHandle_t vTaskInteractionLayer_CAN1_cyclic_1000ms_Handle;
 
 /* USER CODE END Header_StartDefaultTask */
+
+void on_receive_MultiplexExample(){
+	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+}
+
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
@@ -156,6 +161,9 @@ void StartDefaultTask(void *argument)
 		// for simplicity lets disable the cyclic task
 		vTaskSuspend(vTaskInteractionLayer_CAN1_cyclic_1000ms_Handle);
 	}
+
+	CAN1_MultiplexExample.on_receive = &on_receive_MultiplexExample;
+
   /* Infinite loop */
   for(;;)
   {
@@ -453,6 +461,7 @@ void StartDefaultTask(void *argument)
 			error |= (CAN1sig_EXSignal3.getValue() != -98);
 
 			break;
+
 		default:
 			break;
 
