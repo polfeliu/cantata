@@ -247,8 +247,8 @@ Optionally, the Library can also generate FreeRTOS tasks for sending the message
 
 The Interaction Layer can be started and stopped by calling the functions:
 ```c
-CAN1_InteractionLayerStart()
-CAN1_InteractionLayerStop()
+CAN1_InteractionLayerStart();
+CAN1_InteractionLayerStop();
 ```
 
 The test project with STM32 in this repository has examples of how the interaction layer works with a button.
@@ -318,3 +318,10 @@ Signals with attribute _GenSigSendType = IfActiveWithRepetitions_ send the messa
 ![alt text](test/Screenshots/IfActiveWithRepetitions.png)
 
 Example: Same as before
+
+## FreeRTOS Atomicity and Critical Sections
+See Chapter 7: https://www.freertos.org/fr-content-src/uploads/2018/07/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
+
+To guarantee atomicity and consistency of the signals and messages when using FreeRTOS, portENTER_CRITICAL() and portEXIT_CRITICAL() statements can be placed automatically on _send()_ and _receive()_ methods. These statements suspend the interrupts and scheduler and ensure that the messages are packed and unpacked without any instruction being done in the middle (like potentially modify part of a signal and corrupting its data). These statements can be activated with the setting _FreeRTOSCriticalSections_. If the Interaction Layer is activated this is automatically activated.
+
+Note that signals **don't** have these statements. So you will have to take care of that for signals that are longer than the bit-width of the MCU architecture you are using.

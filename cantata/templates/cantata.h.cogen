@@ -16,7 +16,7 @@
 #include "string.h"
 /*[[[cog
 import cog
-if settings['FreeRTOSInteractionLayer']:
+if settings['FreeRTOSInteractionLayer'] or settings['FreeRTOSCriticalSections']:
     cog.out("""
 #include "FreeRTOS.h"
 #include "task.h" """)

@@ -1360,23 +1360,28 @@ static void CAN1sig_EngPower_setRaw(uint16_t raw){
 
 static void CAN1_FloatExample4_receive(){
 
+    portENTER_CRITICAL();
     CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits(CAN1_FloatExample4.raw.CAN1sig_DoubleExample2.sig, CAN1sig_DoubleExample2.length));
+    portEXIT_CRITICAL();
 
     if(CAN1_FloatExample4.on_receive != NULL){CAN1_FloatExample4.on_receive();}
     
 };
 static void CAN1_FloatExample3_receive(){
 
+    portENTER_CRITICAL();
     CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits(CAN1_FloatExample3.raw.CAN1sig_SingleExample3.sig, CAN1sig_SingleExample3.length));
+    portEXIT_CRITICAL();
 
     if(CAN1_FloatExample3.on_receive != NULL){CAN1_FloatExample3.on_receive();}
     
 };
 static void CAN1_FloatExample2_send(){
+    portENTER_CRITICAL();
     memset (CAN1_FloatExample2.raw.bytes,0,sizeof CAN1_FloatExample2.raw.bytes);
-
     CAN1_FloatExample2.raw.CAN1sig_DoubleExample.sig = DoubleToUint64(CAN1sig_DoubleExample.raw);
     CAN1sig_DoubleExample.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_FloatExample2.raw.bytes,
@@ -1387,12 +1392,13 @@ static void CAN1_FloatExample2_send(){
 };
 
 static void CAN1_FloatExample_send(){
+    portENTER_CRITICAL();
     memset (CAN1_FloatExample.raw.bytes,0,sizeof CAN1_FloatExample.raw.bytes);
-
     CAN1_FloatExample.raw.CAN1sig_SingleExample.sig = reverseBits(SingleToUint32(CAN1sig_SingleExample.raw),  CAN1sig_SingleExample.length);
     CAN1sig_SingleExample.sent = true;
     CAN1_FloatExample.raw.CAN1sig_SingleExample2.sig = reverseBits(SingleToUint32(CAN1sig_SingleExample2.raw),  CAN1sig_SingleExample2.length);
     CAN1sig_SingleExample2.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_FloatExample.raw.bytes,
@@ -1403,8 +1409,8 @@ static void CAN1_FloatExample_send(){
 };
 
 static void CAN1_ABSdata_send(){
+    portENTER_CRITICAL();
     memset (CAN1_ABSdata.raw.bytes,0,sizeof CAN1_ABSdata.raw.bytes);
-
     CAN1_ABSdata.raw.CAN1sig_CarSpeed.sig = CAN1sig_CarSpeed.raw;
     CAN1sig_CarSpeed.sent = true;
     CAN1_ABSdata.raw.CAN1sig_GearLock.sig = CAN1sig_GearLock.raw;
@@ -1413,6 +1419,7 @@ static void CAN1_ABSdata_send(){
     CAN1sig_Diagnostics.sent = true;
     CAN1_ABSdata.raw.CAN1sig_AccelerationForce.sig = CAN1sig_AccelerationForce.raw;
     CAN1sig_AccelerationForce.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_ABSdata.raw.bytes,
@@ -1423,8 +1430,8 @@ static void CAN1_ABSdata_send(){
 };
 
 static void CAN1_MultiplexExample2_send(){
+    portENTER_CRITICAL();
     memset (CAN1_MultiplexExample2.raw.bytes,0,sizeof CAN1_MultiplexExample2.raw.bytes);
-
     CAN1_MultiplexExample2.raw.CAN1sig_ExSignal7.sig = CAN1sig_ExSignal7.raw;
     CAN1sig_ExSignal7.sent = true;
 
@@ -1437,6 +1444,7 @@ static void CAN1_MultiplexExample2_send(){
     CAN1sig_ExSignal9.sent = true;
     }
     }
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_MultiplexExample2.raw.bytes,
@@ -1448,6 +1456,7 @@ static void CAN1_MultiplexExample2_send(){
 
 static void CAN1_MultiplexExample_receive(){
 
+    portENTER_CRITICAL();
     CAN1sig_EXSignal1.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal1.sig;
 
     if(CAN1sig_EXSignal1.raw == 4){
@@ -1458,22 +1467,26 @@ static void CAN1_MultiplexExample_receive(){
     }
     CAN1sig_EXSignal3.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal3.sig;
     }
+    portEXIT_CRITICAL();
 
     if(CAN1_MultiplexExample.on_receive != NULL){CAN1_MultiplexExample.on_receive();}
     
 };
 static void CAN1_Ignition_Info_receive(){
 
+    portENTER_CRITICAL();
     CAN1sig_StarterKey.raw = reverseBits(CAN1_Ignition_Info.raw.CAN1sig_StarterKey.sig, CAN1sig_StarterKey.length);
+    portEXIT_CRITICAL();
 
     if(CAN1_Ignition_Info.on_receive != NULL){CAN1_Ignition_Info.on_receive();}
     
 };
 static void CAN1_NM_Engine_send(){
+    portENTER_CRITICAL();
     memset (CAN1_NM_Engine.raw.bytes,0,sizeof CAN1_NM_Engine.raw.bytes);
-
     CAN1_NM_Engine.raw.CAN1sig_SleepInd.sig = CAN1sig_SleepInd.raw;
     CAN1sig_SleepInd.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_NM_Engine.raw.bytes,
@@ -1484,8 +1497,8 @@ static void CAN1_NM_Engine_send(){
 };
 
 static void CAN1_GearBoxInfo_send(){
+    portENTER_CRITICAL();
     memset (CAN1_GearBoxInfo.raw.bytes,0,sizeof CAN1_GearBoxInfo.raw.bytes);
-
     CAN1_GearBoxInfo.raw.CAN1sig_GearLock.sig = CAN1sig_GearLock.raw;
     CAN1sig_GearLock.sent = true;
     CAN1_GearBoxInfo.raw.CAN1sig_ShiftRequest.sig = CAN1sig_ShiftRequest.raw;
@@ -1494,6 +1507,7 @@ static void CAN1_GearBoxInfo_send(){
     CAN1sig_Gear.sent = true;
     CAN1_GearBoxInfo.raw.CAN1sig_EcoMode.sig = CAN1sig_EcoMode.raw;
     CAN1sig_EcoMode.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_GearBoxInfo.raw.bytes,
@@ -1504,12 +1518,13 @@ static void CAN1_GearBoxInfo_send(){
 };
 
 static void CAN1_EngineStatus_send(){
+    portENTER_CRITICAL();
     memset (CAN1_EngineStatus.raw.bytes,0,sizeof CAN1_EngineStatus.raw.bytes);
-
     CAN1_EngineStatus.raw.CAN1sig_Status.sig = CAN1sig_Status.raw;
     CAN1sig_Status.sent = true;
     CAN1_EngineStatus.raw.CAN1sig_ErrorCode.sig = CAN1sig_ErrorCode.raw;
     CAN1sig_ErrorCode.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_EngineStatus.raw.bytes,
@@ -1520,8 +1535,8 @@ static void CAN1_EngineStatus_send(){
 };
 
 static void CAN1_EngineData_send(){
+    portENTER_CRITICAL();
     memset (CAN1_EngineData.raw.bytes,0,sizeof CAN1_EngineData.raw.bytes);
-
     CAN1_EngineData.raw.CAN1sig_EngSpeed.sig = CAN1sig_EngSpeed.raw;
     CAN1sig_EngSpeed.sent = true;
     CAN1_EngineData.raw.CAN1sig_EngTemp.sig = CAN1sig_EngTemp.raw;
@@ -1534,6 +1549,7 @@ static void CAN1_EngineData_send(){
     CAN1sig_EngForce.sent = true;
     CAN1_EngineData.raw.CAN1sig_EngPower.sig = CAN1sig_EngPower.raw;
     CAN1sig_EngPower.sent = true;
+    portEXIT_CRITICAL();
 
     CAN1_SendCallback(
         CAN1_EngineData.raw.bytes,
