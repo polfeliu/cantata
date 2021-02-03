@@ -1364,12 +1364,12 @@ static void CAN1sig_EngPower_setRaw(uint16_t raw){
 
 static void CAN1_FloatExample4_receive(){
 
-CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits(CAN1_FloatExample4.raw.CAN1sig_DoubleExample2.sig, CAN1sig_DoubleExample2.length));
+    CAN1sig_DoubleExample2.raw = Uint64ToDouble(reverseBits(CAN1_FloatExample4.raw.CAN1sig_DoubleExample2.sig, CAN1sig_DoubleExample2.length));
     
 };
 static void CAN1_FloatExample3_receive(){
 
-CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits(CAN1_FloatExample3.raw.CAN1sig_SingleExample3.sig, CAN1sig_SingleExample3.length));
+    CAN1sig_SingleExample3.raw = Uint32ToSingle(reverseBits(CAN1_FloatExample3.raw.CAN1sig_SingleExample3.sig, CAN1sig_SingleExample3.length));
     
 };
 static void CAN1_FloatExample2_send(){
@@ -1448,21 +1448,21 @@ static void CAN1_MultiplexExample2_send(){
 
 static void CAN1_MultiplexExample_receive(){
 
-CAN1sig_EXSignal1.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal1.sig;
+    CAN1sig_EXSignal1.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal1.sig;
 
     if(CAN1sig_EXSignal1.raw == 4){
-CAN1sig_EXSignal2.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal2.sig;
+    CAN1sig_EXSignal2.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal2.sig;
 
     if(CAN1sig_EXSignal2.raw == 0){
-CAN1sig_EXSignal4.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal4.sig;
+    CAN1sig_EXSignal4.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal4.sig;
     }
-CAN1sig_EXSignal3.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal3.sig;
+    CAN1sig_EXSignal3.raw = CAN1_MultiplexExample.raw.CAN1sig_EXSignal3.sig;
     }
     
 };
 static void CAN1_Ignition_Info_receive(){
 
-CAN1sig_StarterKey.raw = reverseBits(CAN1_Ignition_Info.raw.CAN1sig_StarterKey.sig, CAN1sig_StarterKey.length);
+    CAN1sig_StarterKey.raw = reverseBits(CAN1_Ignition_Info.raw.CAN1sig_StarterKey.sig, CAN1sig_StarterKey.length);
     
 };
 static void CAN1_NM_Engine_send(){

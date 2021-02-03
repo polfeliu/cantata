@@ -1,1 +1,1 @@
-from .main import cantata
+from .main import Cantata

@@ -1,5 +1,3 @@
-import os
-import copy
 import cogapp
 import cantools
 import shutil
@@ -8,27 +6,27 @@ import sys
 
 from cantools.database.can.attribute import Attribute
 
-codegen = cogapp.Cog();
-codegen.options.bDeleteCode = True;
+codegen = cogapp.Cog()
+codegen.options.bDeleteCode = True
 
 
 def bit_not(n, numbits=32):
     return (1 << numbits) - 1 - n
 
 
-class cantata:
+class Cantata:
 
     PathTemplates = "./"
 
     settings = {
         "getsetValue_type": "double",  # choose double or single for the get and set values
         "getsetValueOptimizeIdentity": True,  # if Scaling is set to 1 and Offset to 0 return the same value type of the raw and do not perform any unuseful operations
-        "prefix": None, #all variables related to the library will have this prefix
-        "setValueminmax": True, #SetValue function will check that it does not exceed the limits set by the properties
-        "checkminmax": True, #checks if the min and max are correct according to the factors and offset. If they are not correct it will stop the program
-        "CallbackLib": "STM32CANCallbacks", #name of the library that implementes the Callback functions for this bus
-        "FreeRTOSInteractionLayer": True, #generates Interaction Layer with FreeRTOS according to the parameters set on the messages #TODO
-        "calculateCANFilter": True, #Calculates a can Filter for the RX messages
+        "prefix": None,  #all variables related to the library will have this prefix
+        "setValueminmax": True,  #SetValue function will check that it does not exceed the limits set by the properties
+        "checkminmax": True,  #checks if the min and max are correct according to the factors and offset. If they are not correct it will stop the program
+        "CallbackLib": "STM32CANCallbacks",  #name of the library that implementes the Callback functions for this bus
+        "FreeRTOSInteractionLayer": True,  #generates Interaction Layer with FreeRTOS according to the parameters set on the messages #TODO
+        "calculateCANFilter": True,  #Calculates a can Filter for the RX messages
     }
 
     # TODO Make Units optional
@@ -36,7 +34,7 @@ class cantata:
     # TODO Option to make functions thread safe in FreeRTOS (portEnterCritical and portExitCritical)
     # TODO InteractionLayer Bind to Message Received events to Messages received
     # TODO FreeRtos Initialization of signals and messages, how is this handled?
-    # TODO Raw messages with variable length according to DLC. Would reduce memory footprint and it would be easy to use this lib with CANFD (64 bytes per message)
+    # TODO Check usage of default values of attributes
 
     def __init__(self, name):
         self.settings['prefix'] = name
@@ -69,7 +67,7 @@ class cantata:
                 del allIDs[frameid]
 
         # We will work with 32 bits and then truncate
-        StandardFilter = None;
+        StandardFilter = None
         StandardMask = None
         ExtendedFilter = None
         ExtendedMask = None
@@ -83,23 +81,22 @@ class cantata:
 
             if is_extended == True:
                 if not ExtendedFilter:
-                    ExtendedFilter = id;
+                    ExtendedFilter = id
                 else:
                     ExtendedMask = ExtendedMask & bit_not(ExtendedFilter ^ id)
             else:
                 if not StandardFilter:
-                    StandardFilter = id;
+                    StandardFilter = id
                 else:
                     StandardMask = StandardMask & bit_not(StandardFilter ^ id)
 
         # mask Standard by 11 bits
-        StandardFilter = StandardFilter & 0x7FF;
-        StandardMask = StandardMask & 0x7FF;
+        StandardFilter = StandardFilter & 0x7FF
+        StandardMask = StandardMask & 0x7FF
 
         # mask Extended by 11 bits
-        ExtendedFilter = ExtendedFilter & 0x1FFFFFFF;
-        ExtendedMask = ExtendedMask & 0x1FFFFFFF;
-
+        ExtendedFilter = ExtendedFilter & 0x1FFFFFFF
+        ExtendedMask = ExtendedMask & 0x1FFFFFFF
 
         filterobject = {
             'StandardFilter': StandardFilter,
@@ -115,20 +112,20 @@ class cantata:
             if is_extended == True:
                 result = bit_not(ExtendedMask) | bit_not(ExtendedFilter ^ id)
                 if result == 0xFFFFFFFF:
-                    idsmatched.append(id);
+                    idsmatched.append(id)
                 else:
-                    idsnotmatched.append(id);
+                    idsnotmatched.append(id)
 
             else:
                 result = bit_not(StandardMask) | bit_not(StandardFilter ^ id)
                 if result == 0xFFFFFFFF:
-                    idsmatched.append(id);
+                    idsmatched.append(id)
                 else:
-                    idsnotmatched.append(id);
+                    idsnotmatched.append(id)
 
         Nidsmatched = len(idsmatched)
         Nidsnotmatched = len(idsnotmatched)
-        Nidsall = Nidsmatched + Nidsnotmatched;
+        Nidsall = Nidsmatched + Nidsnotmatched
 
         NpassIDs = len(passIDs)
         try:
@@ -150,7 +147,7 @@ class cantata:
 // Efficiency: %s  // Effiency of the filter (passRation/matchedRatio)
 """ % (passRatio, matchedratio, efficiency))
 
-        self.filter = filterobject;
+        self.filter = filterobject
 
         return filterobject
 
@@ -164,9 +161,9 @@ class cantata:
 
     def processFreeRTOSInteractionLayer(self):
         #For Now we consider all messages as cyclic
-        CycleTimeGroups = {};
-        CycleTimeFastMsg = {};
-        OnWriteOnChange = {}; #If it is with repetition it will resumes the fast group
+        CycleTimeGroups = {}
+        CycleTimeFastMsg = {}
+        OnWriteOnChange = {}  #If it is with repetition it will resumes the fast group
 
         for framename, fr in self.InteractionLayerFrames.items():
             if fr['send_type'] == "Cyclic":
@@ -188,7 +185,7 @@ class cantata:
 
             def safeOnWriteOnChangeAppend(framename, signalname):
                 if not framename in OnWriteOnChange:
-                    OnWriteOnChange[framename] = [signalname];
+                    OnWriteOnChange[framename] = [signalname]
                 else:
                     OnWriteOnChange[framename].append(signalname)
 
@@ -220,20 +217,20 @@ class cantata:
                         #Do Nothing. Cyclics are typically defined in messages
                         pass
                     elif GenSigSendType == choices.index("OnWrite"):
-                        safeOnWriteOnChangeAppend(framename, signalname);
+                        safeOnWriteOnChangeAppend(framename, signalname)
 
                     elif GenSigSendType == choices.index("OnWriteWithRepetition"):
-                        safeOnWriteOnChangeAppend(framename, signalname);
+                        safeOnWriteOnChangeAppend(framename, signalname)
                         checkIfParentHasRepetitions(framename, signalname)
                         checkIfParentHasFastTime(framename, signalname)
                         CycleTimeFastAddMsg(framename)
                         activateFastDelayedResumeTask(framename)
 
                     elif GenSigSendType == choices.index("OnChange"):
-                        safeOnWriteOnChangeAppend(framename, signalname);
+                        safeOnWriteOnChangeAppend(framename, signalname)
 
                     elif GenSigSendType == choices.index("OnChangeWithRepetition"):
-                        safeOnWriteOnChangeAppend(framename, signalname);
+                        safeOnWriteOnChangeAppend(framename, signalname)
                         checkIfParentHasRepetitions(framename, signalname)
                         checkIfParentHasFastTime(framename, signalname)
                         CycleTimeFastAddMsg(framename)
@@ -257,7 +254,6 @@ class cantata:
 
 
     def processNetwork(self):
-        from pprint import pprint
         if 'BusType' in self.db.dbc.attributes:
             self.BusType = self.db.dbc.attributes['BusType'].value
         else:
@@ -266,14 +262,14 @@ class cantata:
     def process(self, node = None):
         self.processNetwork()
         if node:
-            found = False;
+            found = False
             for searchnode in self.db.nodes:
                 if searchnode.name == node:
-                    found = True;
-                    break;
+                    found = True
+                    break
 
             if found == True:
-                self.node = node;
+                self.node = node
                 self.processFrames(filterbynode=True)
             else:
                 sys.exit("Node doesn't exist in this Database")
@@ -298,6 +294,8 @@ class cantata:
 
     def checkMinMax(self, signal):
         #get rawvalue min and max
+        rawmin = 0
+        rawmax = 0
         if signal.is_float:
             if signal.length==64:
                 #double
@@ -318,21 +316,20 @@ class cantata:
 
         phylim1 = rawmin * signal.scale + signal.offset
         phylim2 = rawmax * signal.scale + signal.offset
-        phymin = min(phylim1, phylim2);
-        phymax = max(phylim1, phylim2);
+        phymin = min(phylim1, phylim2)
+        phymax = max(phylim1, phylim2)
 
-        error = 0;
+        error = 0
 
         if signal.maximum:
-            sigmax = float(signal.maximum);
+            sigmax = float(signal.maximum)
         else:
-            sigmax = 0;
+            sigmax = 0
 
         if signal.minimum:
-            sigmin = float(signal.minimum);
+            sigmin = float(signal.minimum)
         else:
-            sigmin = 0;
-
+            sigmin = 0
 
         if sigmax == 0: #avoid divisions by 0 when calculating error
             if phymax == 0:
@@ -384,23 +381,60 @@ class cantata:
                                 frame.signals[i].receivers.append(self.node)
 
         fr = {}
-        fr["ID"] = hex(frame.frame_id);
-        fr["decID"] = frame.frame_id;
-        fr["comment"] = frame.comment;
+        fr["ID"] = hex(frame.frame_id)
+        fr["decID"] = frame.frame_id
+        fr["comment"] = frame.comment
         if(frame.is_extended_frame):
             fr["is_extended"] = "true"
         else:
             fr["is_extended"] = "false"
 
-        fr["DLC"] = frame.length;
 
+        # Length and DLC
+        fr['length'] = frame.length
+
+        if frame.length == 64: fr["DLC"] = 15
+        elif frame.length == 48: fr["DLC"] = 14
+        elif frame.length == 32: fr["DLC"] = 13
+        elif frame.length == 24: fr["DLC"] = 12
+        elif frame.length == 20: fr["DLC"] = 11
+        elif frame.length == 16: fr["DLC"] = 10
+        elif frame.length == 12: fr["DLC"] = 9
+        elif frame.length <= 8:
+            fr["DLC"] = frame.length
+        else:
+            sys.exit("Invalid frame length: %s %s" % (frame.length, frame.name))
+
+        # CAN FD
+        if self.BusType == "CAN FD":
+
+            if 'VFrameFormat' in frame.dbc.attributes:
+                val = frame.dbc.attributes['VFrameFormat'].value
+                choices = frame.dbc.attributes['VFrameFormat'].definition.choices
+
+                if choices[val] == 'StandardCAN_FD' or choices[val] == 'ExtendedCAN_FD':
+                    fr["FDF"] = 1
+                else:
+                    fr["FDF"] = 0
+            else:
+                fr["FDF"] = 0
+
+            if fr["FDF"] == 1:
+                if 'CANFD_BRS' in frame.dbc.attributes:
+                    fr["BRS"] = frame.dbc.attributes['CANFD_BRS'].value
+                else:
+                    fr["BRS"] = frame.dbc.attribute_definitions['CANFD_BRS'].default_value
+            else:
+                fr["BRS"] = 0
+
+        # Signal Mapping
         fr["signals"] = {}
 
         if filterbynode:
             frameTX = self.node in frame.senders
-            frameRX = False;
+            frameRX = False
         else:
-            frameTX = True;
+            frameTX = True
             frameRX = True
 
         for signal in frame.signals:
@@ -411,7 +445,7 @@ class cantata:
             else:
                 self.signalparents[signal.name].append(frame.name)
 
-            sig["mask"] = "0b" + "1" * signal.length;
+            sig["mask"] = "0b" + "1" * signal.length
 
             sig["startbit"] = signal.start
 
@@ -434,7 +468,7 @@ class cantata:
         fr["RX"] = frameRX
         fr["TX"] = frameTX
 
-        fr['signal_tree'] = self.removeDeadSignalTreeSigs(frame.signal_tree);
+        fr['signal_tree'] = self.removeDeadSignalTreeSigs(frame.signal_tree)
 
         fr['attributes'] = frame.dbc.attributes
         fr['attribute_definitions'] = frame.dbc.attribute_definitions
@@ -449,34 +483,33 @@ class cantata:
             else:
                 fr['NrOfRepetitions'] = 0
             '''
-            self.InteractionLayerFrames[frame.name] = fr;
-
+            self.InteractionLayerFrames[frame.name] = fr
 
         if frameRX or frameTX:
-            self.frames[frame.name] = fr;
+            self.frames[frame.name] = fr
 
     def processSignal(self, signal, frameTX, filterbynode=False):
-        sig = {};
-        sig['length'] = signal.length;
-        sig['byte_order'] = signal.byte_order;
+        sig = {}
+        sig['length'] = signal.length
+        sig['byte_order'] = signal.byte_order
 
         if signal.unit is None:
             sig['unit'] = ""
-            sig['unit_len'] = 0;
+            sig['unit_len'] = 0
         else:
             sig['unit_len'] = len(signal.unit)
-            sig['unit'] = signal.unit;
+            sig['unit'] = signal.unit
 
         #TODO: optimize factor, offset, min and max types Right now they are all doubles
-        sig['factor'] = signal.scale;
-        sig['offset'] = signal.offset;
+        sig['factor'] = signal.scale
+        sig['offset'] = signal.offset
 
         if signal.initial is None:
-            sig['initial_value'] = 0;
-            sig['initial_value_raw'] = 0;
+            sig['initial_value'] = 0
+            sig['initial_value_raw'] = 0
         else:
-            sig['initial_value'] = signal.initial;
-            sig['initial_value_raw'] = int((signal.initial - sig['offset'])/sig['factor']);
+            sig['initial_value'] = signal.initial
+            sig['initial_value_raw'] = int((signal.initial - sig['offset'])/sig['factor'])
 
         if self.settings['checkminmax']:
             result,calcmin,calcmax = self.checkMinMax(signal)
@@ -487,8 +520,10 @@ calculated minimum: %s
 calculated maximum: %s                
 """ % (signal.name, calcmin, calcmax))
 
-        sig['min'] = signal.minimum;
+        sig['min'] = signal.minimum
         sig['max'] = signal.maximum
+
+        signaltype = 0
 
         if signal.is_float:
             if (signal.length == 64):
@@ -524,12 +559,12 @@ calculated maximum: %s
             else:
                 raise Exception("Not considering signals greater that 64 bits")
 
-        sig['value_type'] = signaltype;
+        sig['value_type'] = signaltype
 
         if self.settings['getsetValueOptimizeIdentity'] & (sig['factor'] == 1) & (sig['offset'] == 0):
-            sig['getsetValue_type'] = signaltype;
+            sig['getsetValue_type'] = signaltype
         else:
-            sig['getsetValue_type'] = self.settings['getsetValue_type'];
+            sig['getsetValue_type'] = self.settings['getsetValue_type']
 
         if signal.choices:
             vt = {}
@@ -537,7 +572,7 @@ calculated maximum: %s
                 name = name.replace(' ', '_')
                 name = re.sub('[^A-Za-z0-9_]+', '', name)
                 name = name.replace('__', '_')
-                vt[name] = num;
+                vt[name] = num
 
             self.valuetables[signal.name] = vt
             sig['getsetValue_type'] = "%ssig_%sVT_t" % (self.settings["prefix"], signal.name)
@@ -548,10 +583,10 @@ calculated maximum: %s
                 sig['RX'] = True
             else:
                 sig['RX'] = False
-            sig['TX'] = frameTX;
+            sig['TX'] = frameTX
         else:
             sig['RX'] = True
-            sig['TX'] = True;
+            sig['TX'] = True
 
         sig['multiplexor'] = signal.multiplexer_signal
         sig['multiplexValues'] = signal.multiplexer_ids
@@ -566,7 +601,7 @@ calculated maximum: %s
                 self.signals[signal.name] = sig
             else:
                 if str(sig) == str(self.signals[signal.name]):
-                    # Signal properties are equal thus is the same signa on the database
+                    # Signal properties are equal thus is the same signal on the database
                     pass
                 else:
                     raise SystemExit("Signal %s is reapeated In this database, as of now we can't handle that, please create unique names" % (signal.name))
@@ -577,24 +612,24 @@ calculated maximum: %s
     def genFiles(self, src=None, hdr=None):
         globals = {}
 
-        globals["settings"] = self.settings;
-        globals["frames"] = self.frames;
-        globals["signals"] = self.signals;
+        globals["settings"] = self.settings
+        globals["frames"] = self.frames
+        globals["signals"] = self.signals
         globals["signalparents"] = self.signalparents
-        globals["valuetables"] = self.valuetables;
+        globals["valuetables"] = self.valuetables
         globals["InteractionLayer"] = self.InteractionLayer
         globals["filter"] = self.filter
         globals["BusType"] = self.BusType
 
-        globals["prefix"] = self.settings["prefix"]; #quicker acccess than settings
+        globals["prefix"] = self.settings["prefix"]  #quicker acccess than settings
 
         srcfilename = "cantata%s.c" % self.settings['prefix']
         hdrfilename = "cantata%s.h" % self.settings['prefix']
 
         p = self.PathTemplates
 
-        codegen.processFile(fIn=p+"cantata.c.cogen", fOut=p+srcfilename, fname="", globals=globals);
-        codegen.processFile(fIn=p+"cantata.h.cogen", fOut=p+hdrfilename, fname="", globals=globals);
+        codegen.processFile(fIn=p+"cantata.c.cogen", fOut=p+srcfilename, fname="", globals=globals)
+        codegen.processFile(fIn=p+"cantata.h.cogen", fOut=p+hdrfilename, fname="", globals=globals)
 
         if src:
             shutil.copyfile(p+srcfilename, src+srcfilename)
@@ -604,7 +639,7 @@ calculated maximum: %s
 
 if __name__ == '__main__':
 
-    can = cantata("CAN1")
+    can = Cantata("CAN1")
 
     can.load('../test/CAN1.dbc')
 
@@ -615,6 +650,6 @@ if __name__ == '__main__':
     can.process(node="Engine")
     #can.process()
 
-    can.genFiles(src=src, hdr=hdr);
+    can.genFiles(src=src, hdr=hdr)
     shutil.copyfile(r'../callbacks/STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
     shutil.copyfile(r'../callbacks/STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')

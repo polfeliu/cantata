@@ -253,6 +253,11 @@ struct %s_%s_t{
     void (*const send)(void);"""
         %());
 
+    if BusType == "CAN FD":
+        cog.out("""
+    const bool FDF;
+    const bool BRS;""")
+
     if settings['FreeRTOSInteractionLayer']:
         if 'GenMsgNrOfRepetition' in frame['attributes']:
             cog.out("""
@@ -265,7 +270,7 @@ struct %s_%s_t{
     union %s_%sraw_u{
         uint8_t bytes[%s];""" % (
         prefix,framename,
-        frame['DLC'],
+        frame['length'],
     ));
 
     def generatedpadding(length):

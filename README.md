@@ -154,7 +154,14 @@ Frames have similar structs with data from the database (ID, is_extended, DLC) a
 
 The code generation for receive and send methods support both multiplexing and extended multiplexing.
 
-If InteractionLayer is activated and the message contains a signal with repetitions, the constant parameter _repetitions_ is defined. Parameter _repetitionsleft_ indicates how many repetitions more will be sent. 
+If InteractionLayer is activated and the message contains a signal with send type with repetitions:
+* **repetitions**: Number of repetitions that are sent
+* **repetitions_left**: Number of repetitions that are left to send
+
+If the network is of type CANFD (Attribute BusType = "CAN FD") the struct will also have:
+* **FDF**: Boolean Indicating if frame is of type Flexible Data Format
+* **BRS**: Boolean Indicating if data is at nominal rate or at data rate (Bit Rate Switch)
+  
 ```c
 // Comment: None
 struct CAN1_MultiplexExample2_t CAN1_MultiplexExample2 = {
@@ -183,6 +190,17 @@ Send Method can be used from the application to decide when to send each frame. 
 #### Receive
 The library also defines a receive callback (*CAN1_ReceiveCallback*) that can be used to handle incoming messages and store them in the respective structures according to the ID.
 When the driver receives a message it should call this function with the appropiate parameters. This function is driver agnostic and it is generated in the cantata file.
+
+Both Receive and Send Callbacks have the following parameters:
+* **data**: Array of bytes to be transmitted or received
+* **DLC**: Data Length Code. Indicates how many bytes are in the data frame. For messages with length less than 8 bytes DLC=length.
+* **ID**: Identifier of the frame.
+* **is_extended**: boolean indicating if identifier is of type extended
+  
+If the network is of type CANFD (Attribute BusType = "CAN FD") they will also have:
+* **FDF**: Boolean Indicating if frame is of type Flexible Data Format
+* **BRS**: Boolean Indicating if data is at nominal rate or at data rate (Bit Rate Switch)
+
 ```c
 void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended){
     if((ID > 0x1FFFFFFF) & is_extended){
