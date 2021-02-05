@@ -91,10 +91,8 @@ static CAN_RxHeaderTypeDef RxHeader = {
 
 static uint8_t RxData[8];
 
-static uint64_t data;
-static uint32_t ID;
+static uint16_t ID;
 static bool is_extended;
-static uint8_t DLC;
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef*hcan){
 	if(hcan->Instance == CAN1){
@@ -105,12 +103,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef*hcan){
 				RxData
 			);
 
-		data = 0;
-
-		for(int i=0; i<8; i++){
-			data |= RxData[i] << 8*i;
-		}
-
 		if(RxHeader.IDE == CAN_ID_EXT){
 			is_extended = true;
 			ID = RxHeader.ExtId;
@@ -119,7 +111,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef*hcan){
 			ID = RxHeader.StdId;
 		}
 
-		CAN1_ReceiveCallback(RxData, DLC, ID, is_extended);
+		CAN1_ReceiveCallback(RxData, RxHeader.DLC, ID, is_extended);
 	}
 
 }
