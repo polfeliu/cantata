@@ -506,11 +506,15 @@ class Cantata:
         sig['offset'] = signal.offset
 
         if signal.initial is None:
-            sig['initial_value'] = 0
             sig['initial_value_raw'] = 0
         else:
-            sig['initial_value'] = signal.initial
-            sig['initial_value_raw'] = int(float((signal.initial - sig['offset']))/sig['factor'])
+            sig['initial_value_raw'] = signal.initial
+
+        sig['initial_value'] = float(sig['initial_value_raw']) * float(sig['factor']) + float(sig['offset'])
+
+        if not signal.is_float:
+            sig['initial_value_raw'] = int(sig['initial_value_raw'])
+
 
         if self.settings['checkminmax']:
             result,calcmin,calcmax = self.checkMinMax(signal)
