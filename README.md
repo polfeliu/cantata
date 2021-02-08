@@ -4,7 +4,7 @@
 This Python module extracts information from CANdb Databases and generates C code for integrating it into embedded projects. It is environment agnostic, it can be integrated into any MCU in theory. Example files to integrate it into STM32 using HAL from ST are included in this repo.\
 The candb library used for reading the dbc files ([cantools](https://cantools.readthedocs.io/en/latest/)) also accepts other formats, but it hasn't been tested.
 ## Install
-You can install the package from PyPi
+You can install the package from PyPi: https://pypi.org/project/python-cantata/
 ```bash
 pip install python-cantata
 ```
