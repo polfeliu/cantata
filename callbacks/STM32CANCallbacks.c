@@ -95,7 +95,7 @@ static uint16_t ID;
 static bool is_extended;
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef*hcan){
-	if(hcan->Instance == CAN1){
+	if(hcan->Instance == CANHandle.Instance){
 		HAL_CAN_GetRxMessage(
 				&CANHandle,
 				CAN_RX_FIFO0,
