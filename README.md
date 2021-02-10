@@ -65,7 +65,7 @@ To store the new mins and maxs you can call the function ``can.save("file")``.
 This check can be disabled by setting _checkminmax_ to False on the settings 
 
 ### Filters
-The library calculates a single hardware filter (filter and mask) for the RX messages of the node. This can be used to reduce the software load. The filters are declared in the header file
+The library calculates a standard ID and a extended ID hardware filter (filter and mask) for the RX messages of the node. This can be used to reduce the software load. The filters are declared in the header file
 
 ```c
 // PassRatio: 67.0 %  // Messages that this ECU Reads
@@ -218,7 +218,7 @@ If the network is of type CANFD (Attribute BusType = "CAN FD") they will also ha
 * **BRS**: Boolean Indicating if data is at nominal rate or at data rate (Bit Rate Switch)
 
 ```c
-void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended){
+void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended /*, bool FDF, bool BRS*/){
     if((ID > 0x1FFFFFFF) & is_extended){
         //invalid extended identifier
     }else if((ID > 0x7FF) & !is_extended){
@@ -323,5 +323,7 @@ Example: Same as before
 See Chapter 7: https://www.freertos.org/fr-content-src/uploads/2018/07/161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf
 
 To guarantee atomicity and consistency of the signals and messages when using FreeRTOS, portENTER_CRITICAL() and portEXIT_CRITICAL() statements can be placed automatically on _send()_ and _receive()_ methods. These statements suspend the interrupts and scheduler and ensure that the messages are packed and unpacked without any instruction being done in the middle (like potentially modify part of a signal and corrupting its data). These statements can be activated with the setting _FreeRTOSCriticalSections_. If the Interaction Layer is activated this is automatically activated.
+
+Warning! portEnter_CRITICAL() and portEXIT_CRITICAL() cannot be called from an ISR. If the CAN_ReceiveCallback is directly called from the CAN interrupt and _FreeRTOSCriticalSections_ is activated the program will crash. Please use deferred interrupt processing on the callbacks to avoid this. On the STM32CANCallbacks there is an example on how to do this with Queues.
 
 Note that methods for signals **don't** have these statements. So you will have to take care of that for signals that are longer than the bit-width of the MCU architecture you are using.
