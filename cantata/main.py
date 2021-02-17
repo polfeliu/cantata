@@ -35,6 +35,8 @@ class Cantata:
     # TODO Make Comment optional
     # TODO FreeRtos Initialization of signals and messages, how is this handled?
     # TODO Check usage of default values of attributes
+    # TODO Multiplexing with Interaction Layer. Signal send method for multiplexed signals
+    # TODO Define override stack depth
 
     def __init__(self, name):
         self.settings['prefix'] = name
