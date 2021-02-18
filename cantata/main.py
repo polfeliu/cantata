@@ -3,6 +3,7 @@ import cantools
 import shutil
 import re
 import sys
+import warnings
 
 from cantools.database.can.attribute import Attribute
 
@@ -35,6 +36,8 @@ class Cantata:
     # TODO Make Comment optional
     # TODO FreeRtos Initialization of signals and messages, how is this handled?
     # TODO Check usage of default values of attributes
+    # TODO Multiplexing with Interaction Layer. Signal send method for multiplexed signals
+    # TODO Define override stack depth
 
     def __init__(self, name):
         self.settings['prefix'] = name
@@ -577,6 +580,8 @@ calculated maximum: %s
                 name = name.replace(' ', '_')
                 name = re.sub('[^A-Za-z0-9_]+', '', name)
                 name = name.replace('__', '_')
+                if name in vt :
+                    warnings.warn("Value Table has several values assigned to the same name. One of the values will be assigned to the name")
                 vt[name] = num
 
             self.valuetables[signal.name] = vt

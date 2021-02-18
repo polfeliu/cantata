@@ -243,7 +243,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_cyclic_1000ms,
         "InteractionLayer_CAN1_cyclic_1000ms",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_cyclic_1000_Stack_Depth
+            vTaskInteractionLayer_CAN1_cyclic_1000_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_cyclic_1000ms_Handle
@@ -255,7 +259,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_ABSdata_fast,
         "vTaskInteractionLayer_CAN1_ABSdata_fast",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_ABSdata_Stack_Depth
+            vTaskInteractionLayer_CAN1_ABSdata_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_ABSdata_fast_Handle
@@ -263,7 +271,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_ABSdata_fastDelayedResume,
         "vTaskInteractionLayer_CAN1_ABSdata_fastDelayedResume",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_ABSdata_fastDelayedResume_Stack_Depth
+            vTaskInteractionLayer_CAN1_ABSdata_fastDelayedResume_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_ABSdata_fastDelayedResume_Handle
@@ -271,7 +283,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_MultiplexExample2_fast,
         "vTaskInteractionLayer_CAN1_MultiplexExample2_fast",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_MultiplexExample2_Stack_Depth
+            vTaskInteractionLayer_CAN1_MultiplexExample2_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_MultiplexExample2_fast_Handle
@@ -279,7 +295,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_EngineStatus_fast,
         "vTaskInteractionLayer_CAN1_EngineStatus_fast",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_EngineStatus_Stack_Depth
+            vTaskInteractionLayer_CAN1_EngineStatus_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_EngineStatus_fast_Handle
@@ -287,7 +307,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_EngineData_fast,
         "vTaskInteractionLayer_CAN1_EngineData_fast",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_EngineData_Stack_Depth
+            vTaskInteractionLayer_CAN1_EngineData_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_EngineData_fast_Handle
@@ -295,7 +319,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_EngineData_fastDelayedResume,
         "vTaskInteractionLayer_CAN1_EngineData_fastDelayedResume",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_EngineData_fastDelayedResume_Stack_Depth
+            vTaskInteractionLayer_CAN1_EngineData_fastDelayedResume_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_EngineData_fastDelayedResume_Handle
@@ -307,7 +335,11 @@ void CAN1_InteractionLayerStart(){
     xTaskCreate(
         vTaskInteractionLayer_CAN1_OnWriteOnChange,
         "vTaskInteractionLayer_CAN1_OnWriteOnChange",
-        100,
+        #ifdef vTaskInteractionLayer_CAN1_OnWriteOnChange_Stack_Depth
+            vTaskInteractionLayer_CAN1_OnWriteOnChange_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_CAN1_OnWriteOnChange_Handle

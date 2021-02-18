@@ -131,7 +131,9 @@ CAN1sig_SleepInd.setRaw(34);
 ```
 
 #### Value Tables
-Signals can have Value tables associated to represent states, errors or others. These are automatically defined as enumerated types that are easily accessed 
+Signals can have Value tables associated to represent states, errors or others. These are automatically defined as enumerated types that are easily accessed. 
+
+Enumerated datatypes can only have a code for each name, but value tables can have more than one. If this is the case the code generation will throw a warning and assign one of the possible values to the name.
 ```c
 typedef enum {
     CAN1sig_StatusVT_Error=3,
