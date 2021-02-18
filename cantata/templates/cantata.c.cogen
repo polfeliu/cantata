@@ -237,11 +237,17 @@ void %s_InteractionLayerStart(){""" % prefix)
     xTaskCreate(
         vTaskInteractionLayer_%s_cyclic_%sms,
         "InteractionLayer_%s_cyclic_%sms",
-        100,
+        #ifdef vTaskInteractionLayer_%s_cyclic_%s_Stack_Depth
+            vTaskInteractionLayer_%s_cyclic_%s_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_%s_cyclic_%sms_Handle
     ); """ % (  prefix, time,
+                prefix, time,
+                prefix, time,
                 prefix, time,
                 prefix, time,
                 ))
@@ -257,11 +263,17 @@ void %s_InteractionLayerStart(){""" % prefix)
     xTaskCreate(
         vTaskInteractionLayer_%s_%s_fast,
         "vTaskInteractionLayer_%s_%s_fast",
-        100,
+        #ifdef vTaskInteractionLayer_%s_%s_Stack_Depth
+            vTaskInteractionLayer_%s_%s_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_%s_%s_fast_Handle
     ); """ % (  prefix, framename,
+                prefix, framename,
+                prefix, framename,
                 prefix, framename,
                 prefix, framename
                 ))
@@ -272,11 +284,17 @@ void %s_InteractionLayerStart(){""" % prefix)
     xTaskCreate(
         vTaskInteractionLayer_%s_%s_fastDelayedResume,
         "vTaskInteractionLayer_%s_%s_fastDelayedResume",
-        100,
+        #ifdef vTaskInteractionLayer_%s_%s_fastDelayedResume_Stack_Depth
+            vTaskInteractionLayer_%s_%s_fastDelayedResume_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_%s_%s_fastDelayedResume_Handle
     ); """ % (  prefix, framename,
+                prefix, framename,
+                prefix, framename,
                 prefix, framename,
                 prefix, framename
                 ))
@@ -292,11 +310,15 @@ void %s_InteractionLayerStart(){""" % prefix)
     xTaskCreate(
         vTaskInteractionLayer_%s_OnWriteOnChange,
         "vTaskInteractionLayer_%s_OnWriteOnChange",
-        100,
+        #ifdef vTaskInteractionLayer_%s_OnWriteOnChange_Stack_Depth
+            vTaskInteractionLayer_%s_OnWriteOnChange_Stack_Depth,
+        #else
+            100,
+        #endif
         NULL,
         tskIDLE_PRIORITY,
         &vTaskInteractionLayer_%s_OnWriteOnChange_Handle
-    ); """ % (prefix,prefix,prefix))
+    ); """ % (prefix,prefix,prefix,prefix,prefix))
 
     cog.out("""
 }""")
