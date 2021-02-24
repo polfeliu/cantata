@@ -1,7 +1,7 @@
 # Cantata
 *Warning!* This is a work in progress, and it doesn't have proper testing done to it. Use at your own risk!
 
-This Python module extracts information from CANdb Databases and generates C code for integrating it into embedded projects. It is environment agnostic, it can be integrated into any MCU in theory. Example files to integrate it into STM32 using HAL from ST are included in this repo.\
+This Python module extracts information from CANdb Databases and generates C code for integration into embedded projects. The code is environment agnostic, it can be integrated into any MCU in theory. Example files to integrate it into STM32 using HAL from ST are included in this repo.\
 The candb library used for reading the dbc files ([cantools](https://cantools.readthedocs.io/en/latest/)) also accepts other formats, but it hasn't been tested.
 ## Install
 You can install the package from PyPi: https://pypi.org/project/python-cantata/
@@ -19,9 +19,9 @@ pipenv shell
 ```
 
 ## Usage
-Generating files from database is pretty simple, just create a python file. This must import the module, load the database, process it, and generates .c and .h files according to the choosen options.
+Generating files from database is pretty simple, just create a python file and execute it every time you change the database. This script must import the module, load the database, process it, and the module will generate .c and .h files according to the choosen options.
 When creating the _cantata_ object a prefix must be passed, that will give the starting name of all objects in files (messages, signals, value tables...). All the prefixes in this readme are CAN1 for simplicity purposes.
-This important for ECU's that are connected to multiple buses, specially if objects in the database share names.  
+This is important for ECU's that are connected to multiple buses, specially if objects in the databases share names.  
 
 ```python
 from cantata import cantata
@@ -43,14 +43,14 @@ can.reset() #you can reset the data to be able to generate a new Node in another
 
 The function _process_ will extract the signals and frames of the database. The _node_ parameter passed indicates which node is the code for, meaning only the frames and signals necessary will be in the code. 
 
-Frames transmitted by the ECU will only have send() method. Frames received will have only receive().\
+Frames transmitted by the ECU will only have send() methods. Frames received will only have receive().\
 Signals will always have getValue() methods and only setValue() methods if they are TX. \
 Even though RX messages may have signals that are not RX declared in the database but are actually received they won't have an object to access them, forcing you to keep the database consistent if you want to access the signals ;). 
 
 If no node is passed to the process function (``` can.process()```) the function will calculate all the frames signals and methods. 
 
 ### Settings
-The generation library has a set of settings that are documented across this readme. They can be changed from the default ones by accessing the settings dictionary
+This library has a series of settings that are documented across this readme. They can be changed from the default ones by accessing the settings dictionary
 
 ``` python
 can.settings["CallbackLib"] = "STM32CANCallbacks" #name of the library that implementes the Callback functions for this bus
@@ -59,13 +59,13 @@ can.settings["CallbackLib"] = "STM32CANCallbacks" #name of the library that impl
 ### Mins and Max
 I've found that many databases tend to have the mins and maxs of signals not calculated (because in the CANdb++ editor you have to click a button to update them).\
 To prevent mysterious errors when executing the program I programmed a cool optional feature: When you process a signal it checks that the mins and max are correct. If a signal fails the program halts and prints an error.\
-The function correctMinsMax() can be called before processing the node and it simply recalculates all the mins and maxs to the cache.
-To store the new mins and maxs you can call the function ``can.save("file")``.
+This check can be disabled by setting _checkminmax_ to False on the settings
 
-This check can be disabled by setting _checkminmax_ to False on the settings 
+The function correctMinsMax() can be called before processing the node and it simply recalculates all the mins and maxs to the cache, so that when you call the process() function it doesn't fail.
+To store the new mins and maxs to a .dbc file you can call the function ``can.save("file")``.
 
 ### Filters
-The library calculates a standard ID and a extended ID hardware filter (filter and mask) for the RX messages of the node. This can be used to reduce the software load. The filters are declared in the header file
+The library calculates a standard ID and a extended ID hardware filters (filter and mask) for the RX messages of the node. This can be used to reduce the software load. The filters are declared in the header file
 
 ```c
 // PassRatio: 67.0 %  // Messages that this ECU Reads
@@ -79,7 +79,7 @@ The library calculates a standard ID and a extended ID hardware filter (filter a
 ```
 More on CAN controller hardware filters: http://www.cse.dmu.ac.uk/~eg/tele/CanbusIDandMask.html
 
-In the STM32CANCallbacks.c files there is an initialization of the CAN that includes the configuration of the bxCAN filter.
+In the STM32CANCallbacks.c files there is an initialization of the CAN that includes the configuration of the bxCAN filters.
 
 ## Structure
 The library generates cantataCAN1.c and cantataCAN1.h files with structures and functions for the following objects.
@@ -206,7 +206,7 @@ void main(){
 
 ### CallBacks
 #### Receive
-The library also defines a receive callback (*CAN1_ReceiveCallback*) that can be used to handle incoming messages and store them in the respective structures according to the ID.
+The library also defines a receive callback (*CAN1_ReceiveCallback*) that can be used to handle incoming messages and store them in the respective structures according to the ID (it also checks that consistency with DLC, is_extended, FDF and BRS).
 When the driver receives a message it should call this function with the appropiate parameters. This function is driver agnostic and it is generated in the cantata file.
 
 Both Receive and Send Callbacks have the following parameters:
@@ -238,19 +238,26 @@ void CAN1_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_exte
     }
 ```
 
-In the STM32CANCallbacks files there is an example on how to this function should be called on STM32 using HAL.
+In the STM32CANCallbacks files there is an example on how this function should be called on STM32 using HAL.
 #### Transmit
 You should define a Transmit (*CAN1_SendCallback*) callback so that the messages are sent after being assembled. \
 This function will be called with the *data, DLC, ID, is_extended* parameters by each send() command.\
-An example of this is also included in the STM32CANCallbacks files.
+If the network is of type CANFD they must also have FDF and BRS.
 
+An example of this function is included in the STM32CANCallbacks files.
 ## Interaction Layer
 Optionally, the Library can also generate FreeRTOS tasks for sending the messages and signals.
 
-The Interaction Layer can be started and stopped by calling the functions:
+The Interaction Layer can be started and stopped by calling the functions.  
 ```c
 CAN1_InteractionLayerStart();
 CAN1_InteractionLayerStop();
+```
+These functions create and delete the tasks of the Interaction Layer Tasks respectively. 
+The tasks are created with a default stack depth. The stack usage is something that greatly depends and one may want to change it and tune it to improve resource utilization. 
+The default value can be overridden by defining each tasks stack depth with a #define macro
+```c
+#define vTaskInteractionLayer_CAN2_cyclic_100_Stack_Depth 300
 ```
 
 The test project with STM32 in this repository has examples of how the interaction layer works with a button.
@@ -278,7 +285,7 @@ CAN1sig_IdleRunning.setValue(button);
 ```
 
 ### On Change With Repetitions
-Signals with attribute _GenSigSendType = OnChangeWithRepetition_ send the messages similary as _OnChange_ but, after the value is changed (and sent) the signal is sent N times at a fast rate, thus the message is sent N+1 times.
+Signals with attribute _GenSigSendType = OnChangeWithRepetition_ send the messages similary as _OnChange_ but, after the value is changed (and sent) the signal is sent N times more at a fast rate, thus the message is sent N+1 times.
 This fast rate is defined in the message attribute _GenMsgCycleTimeFast_ and number of times the message is sent is set with _GenMsgNrOfRepetition_.    
 ![alt text](test/Screenshots/OnChangeWithRepetitions.png)
 
