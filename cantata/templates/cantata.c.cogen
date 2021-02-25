@@ -413,14 +413,22 @@ void %s_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extend
 for framename, frame in frames.items():
     if frame['RX']:
         additionalchecks = ""
-        if BusType=="CAN FD":
-            additionalchecks += " & (FDF==%s_%s.FDF) & (BRS==%s_%s.BRS)" % (prefix, framename, prefix, framename)
+
+        if settings['receiveCallbackCheckDLC']:
+            additionalchecks += " & (DLC==%s_%s.DLC)" % (prefix, framename)
+
+        if settings['receiveCallbackCheckFDF']:
+            additionalchecks += " & (FDF==%s_%s.FDF)" % (prefix, framename)
+
+        if settings['receiveCallbackCheckBRS']:
+            additionalchecks += " & (BRS==%s_%s.BRS)" % (prefix, framename)
+
         cog.out(
 """
-    else if((ID==%s_%s.ID) & (is_extended==%s_%s.is_extended) & (DLC==%s_%s.DLC)%s){
+    else if((ID==%s_%s.ID) & (is_extended==%s_%s.is_extended)%s){
         memcpy(%s_%s.raw.bytes, data, sizeof %s_%s.raw.bytes);
         %s_%s.receive();"""
-        %(prefix, framename, prefix, framename, prefix, framename, additionalchecks,
+        %(prefix, framename, prefix, framename, additionalchecks,
         prefix, framename, prefix, framename, 
         prefix, framename
         ));
@@ -479,10 +487,18 @@ for signame, sig in signals.items():
     cog.out(
 """
 struct %ssig_%s_t %ssig_%s = {
-    .length = %s,
-    .byte_order = %s,
-    .value_type = T%s,
-    .unit = "%s",
+    .length = %s,"""
+    % (prefix, signame, prefix, signame,sig['length']))
+    if settings['SignalByteOrder']:
+        cog.out("""
+    .byte_order = %s,"""        %(sig['byte_order']))
+    if settings['SignalValueType']:
+        cog.out("""
+    .value_type = T%s,"""       %(sig['value_type']))
+    if settings['SignalUnits']:
+        cog.out("""
+    .unit = "%s","""            %(sig['unit']))
+    cog.out("""
     .initial_value = %s,
     .factor = %s,
     .offset = %s,
@@ -491,11 +507,6 @@ struct %ssig_%s_t %ssig_%s = {
     .raw = %s,
     .getValue = %ssig_%s_getValue"""
     % (
-        prefix, signame, prefix, signame,
-        sig['length'],
-        sig['byte_order'],
-        sig['value_type'],
-        sig['unit'],
         sig['initial_value'],
         float(sig['factor']),
         float(sig['offset']),

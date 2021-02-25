@@ -33,8 +33,8 @@ void CAN1_InteractionLayerStop(void);
  * CAN Filters: CAN Filters filter and mask
  */
 
-// PassRatio: 80.0 %  // Messages that this ECU Reads
-// MatchedRatio: 80.0 %  // Messages that the Filters lets pass
+// PassRatio: 80.0 %  // Messages that this ECU Reads (listed in the database)
+// MatchedRatio: 80.0 %  // Messages that the Filters lets pass (listed in the database)
 // Efficiency: 100.0 %  // Effiency of the filter (passRation/matchedRatio)
 
 #define CAN1_StandardFilter   0b00010110001

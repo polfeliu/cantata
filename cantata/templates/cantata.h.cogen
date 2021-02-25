@@ -81,7 +81,10 @@ void %s_ReceiveCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extend
 
 ]]]*/
 //[[[end]]]
-
+/*[[[cog
+import cog
+if settings['SignalByteOrder']:
+    cog.out("""
 /*
  * Enum definitions for CANbyteorder_t
  */
@@ -89,7 +92,13 @@ typedef enum {
     little_endian, //intel
     big_endian //motorola
 } CANbyteorder_t;
-
+""")
+]]]*/
+//[[[end]]]
+/*[[[cog
+import cog
+if settings['SignalValueType']:
+    cog.out("""
 /*
  * Enum definitions of types of signals
  */
@@ -106,6 +115,9 @@ typedef enum {
     Tint32_t,
     Tint64_t
 } CANvaluetype_t;
+""")
+]]]*/
+//[[[end]]]
 
 /*
  * Enum definitions for value tables
@@ -175,10 +187,20 @@ for signame, sig in signals.items():
     cog.out(
 """
 struct %ssig_%s_t{
-    const uint8_t length;
-    const CANbyteorder_t byte_order;
-    const CANvaluetype_t value_type;
-    const char unit[%s];
+    const uint8_t length;""" % (
+        prefix,signame,
+    ))
+
+    if settings['SignalByteOrder']:
+        cog.out("""
+    const CANbyteorder_t byte_order;""")
+    if settings['SignalValueType']:
+        cog.out("""
+    const CANvaluetype_t value_type;""")
+    if settings['SignalUnits']:
+        cog.out("""
+    const char unit[%s];""" % (sig['unit_len']))
+    cog.out("""
     const %s initial_value ;
     const double factor ;
     const double offset ;
@@ -187,8 +209,6 @@ struct %ssig_%s_t{
     %s raw;
     %s (*const getValue)(void);"""
     % (
-        prefix,signame,
-        sig['unit_len'],
         sig['getsetValue_type'],
         sig['value_type'], 
         sig['getsetValue_type'],

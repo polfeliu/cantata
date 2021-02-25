@@ -87,7 +87,17 @@ The library generates cantataCAN1.c and cantataCAN1.h files with structures and 
 ![alt text](diagram.png)
 
 ### Signals
-The signal structure contains basic information of the signal provided by the database (length, byte_order, unit, initial_value, factor, offset, min, max) and own elements of the library:
+The signal structure contains basic information of the signal provided by the database:
+* **length**: Length in bits of the signal
+* **(optional)byte_order**: Byte order represented with enumerated type of the signal big_endian or little endian
+* **(optional)unit**: Units of the signal (String)
+* **(optional)initial_value**: Initial value of the signal
+* **factor**: Factor to get physical value from raw value
+* **offset**: Offset to get physical value from raw value
+* **min**: Minimum physical value of the signal
+* **max**: Maximum physical value of the signal
+
+And also own elements of the library:
 * **value_type**: indicates in what type the raw signal will be stored
 * **raw**: stores the raw signal, can be used to get the raw value
 * **getValue**: pointer to function that returns the physical value according to the factor and offset
@@ -149,7 +159,12 @@ CAN1sig_Status.setValue(CAN1sig_StatusVT_WakeUp);
 
 
 ### Frames
-Frames have similar structs with data from the database (ID, is_extended, DLC) and:
+Frames have similar structs with data from the database:
+* **ID**: Identifier of the message.   
+* **is_extended**: Boolean indicating if the indentifier is of extended format (equivalent to XTD)
+* **DLC**: Data Length Code declared in the database (for messages with DLC less or equal to 8, DLC=Number of bytes)
+
+And also own elements of the library:
 * **raw**: Holds the raw message with union of bytes and raw signals structs. This shouldn't be used by the application.
 * **send**:  packs all the signals to the frame raw parameter and calls CAN1_SendCallback() with the frame calculated (more on that later). Also reverses bits of big endian signals. 
 * **receive**: unpacks the raw message and store the values of the signals to the signals raw parameter. Signals with big endian encoding are reversed on this process. 
@@ -162,8 +177,8 @@ If InteractionLayer is activated and the message contains a signal with send typ
 * **repetitions_left**: Number of repetitions that are left to send
 
 If the network is of type CANFD (Attribute BusType = "CAN FD") the struct will also have:
-* **FDF**: Boolean Indicating if frame is of type Flexible Data Format
-* **BRS**: Boolean Indicating if data is at nominal rate or at data rate (Bit Rate Switch)
+* **(optional)FDF**: Boolean Indicating if frame is of type Flexible Data Format
+* **(optional)BRS**: Boolean Indicating if data is at nominal rate or at data rate (Bit Rate Switch)
   
 ```c
 // Comment: None

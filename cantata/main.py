@@ -29,15 +29,18 @@ class Cantata:
         "FreeRTOSInteractionLayer": True,  #generates Interaction Layer with FreeRTOS according to the parameters set on the messages
         "calculateCANFilter": True,  #Calculates a can Filter for the RX messages,
         "on_receive": True,  #Include a pointer to a function on the message structs that is called when the messages are received.
-        "FreeRTOSCriticalSections": False
+        "FreeRTOSCriticalSections": False,
+        "SignalByteOrder": True, #Include a enumerated type that indicates if the signal is big endian or little endian
+        "SignalValueType": True, #Include a enumerated type that indicates in what format the signal will be stored
+        "SignalUnits": True, # Include string of unit in the signal structs
+        "receiveCallbackCheckDLC": True, #Receive callback check if DLC Matches
+        "receiveCallbackCheckFDF": True, #Receive callback check if FDF Matches
+        "receiveCallbackCheckBRS": True  #Receive callback check if BRS Matches
     }
 
-    # TODO Make Units optional
-    # TODO Make Comment optional
     # TODO FreeRtos Initialization of signals and messages, how is this handled?
     # TODO Check usage of default values of attributes
     # TODO Multiplexing with Interaction Layer. Signal send method for multiplexed signals
-    # TODO Define override stack depth
 
     def __init__(self, name):
         self.settings['prefix'] = name
@@ -70,11 +73,6 @@ class Cantata:
                 del allIDs[frameid]
 
         # We will work with 32 bits and then truncate
-        StandardFilter = None
-        StandardMask = None
-        ExtendedFilter = None
-        ExtendedMask = None
-
         StandardFilter = 0
         ExtendedFilter = 0
         ExtendedMask = 0xFFFFFFFF
@@ -145,8 +143,8 @@ class Cantata:
             efficiency = "NULL"
 
         filterobject['evaluation'] = ("""
-// PassRatio: %s  // Messages that this ECU Reads
-// MatchedRatio: %s  // Messages that the Filters lets pass
+// PassRatio: %s  // Messages that this ECU Reads (listed in the database)
+// MatchedRatio: %s  // Messages that the Filters lets pass (listed in the database)
 // Efficiency: %s  // Effiency of the filter (passRation/matchedRatio)
 """ % (passRatio, matchedratio, efficiency))
 
@@ -262,6 +260,11 @@ class Cantata:
             self.BusType = self.db.dbc.attributes['BusType'].value
         else:
             self.BusType = "CAN"
+
+        if not self.BusType == "CAN FD":
+            self.settings["receiveCallbackCheckFDF"] = False
+            self.settings["receiveCallbackCheckBRS"] = False
+
 
     def process(self, node = None):
         self.processNetwork()
