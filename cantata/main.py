@@ -641,6 +641,7 @@ calculated maximum: %s
 
         p = self.PathTemplates
 
+        codegen.options.sEncoding = "ANSI"
         codegen.processFile(fIn=p+"cantata.c.cogen", fOut=p+srcfilename, fname="", globals=globals)
         codegen.processFile(fIn=p+"cantata.h.cogen", fOut=p+hdrfilename, fname="", globals=globals)
 
