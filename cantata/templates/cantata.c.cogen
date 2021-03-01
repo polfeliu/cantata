@@ -553,7 +553,7 @@ struct %ssig_%s_t %ssig_%s = {
 //[[[end]]]
 
 /*
- * Signals: Signal getValue and setValue "private" methods
+ * Signals: Signal getValue and setValue private methods
  */
 /*[[[cog
 import cog
