@@ -141,11 +141,13 @@ enum{
 
 extern TaskHandle_t vTaskInteractionLayer_CAN1_cyclic_1000ms_Handle;
 
-/* USER CODE END Header_StartDefaultTask */
-
 void on_receive_MultiplexExample(){
 	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 }
+
+/* USER CODE END Header_StartDefaultTask */
+
+
 
 void StartDefaultTask(void *argument)
 {
