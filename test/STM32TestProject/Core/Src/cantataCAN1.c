@@ -989,7 +989,7 @@ struct CAN1sig_EngPower_t CAN1sig_EngPower = {
     
 
 /*
- * Signals: Signal getValue and setValue private methods
+ * Signals: Signal getValue and setValue "private" methods
  */
 
 

@@ -688,27 +688,43 @@ calculated maximum: %s
         def invconversion(raw):
             return raw*factor+offset
 
-        rawvalues = list(range(rawmin,rawmax))
+
+        rawvalues = list(range(rawmin,rawmax+1))
         physicalvalues = list(map(invconversion,rawvalues))
+        phymax = physicalvalues[-1]
+        phymin = physicalvalues[0]
+        phyrange = phymax - phymin
 
-        roundminlimraw = list(map(lambda x:x-0.5, rawvalues))
-        roundminlim = list(map(invconversion, roundminlimraw))
-
-        roundmaxlimraw = list(map(lambda x:x+0.5, rawvalues))
+        if factor > 0:
+            inc = +1
+        else:
+            inc = -1
+        roundmaxlimraw = list(map(lambda x:x+inc, rawvalues))
         roundmaxlim = list(map(invconversion, roundmaxlimraw))
 
         fig, ax = plt.subplots()
 
         for i in range(len(rawvalues)):
             plt.plot(
-                [roundminlim[i], roundmaxlim[i]],#X
+                [physicalvalues[i], roundmaxlim[i]],#X
                 [rawvalues[i], rawvalues[i]],#Y
                 color='black'
             )
 
+        plt.plot(
+            [phymax, phymax + phyrange*0.5],
+            [rawmax, rawmax],
+            color='black'
+        )
+
+        plt.plot(
+            [phymin, phymin - phyrange*0.5],
+            [rawmin, rawmin],
+            color='black'
+        )
+
         ax.scatter(physicalvalues, rawvalues, marker='o', color='black')
-        ax.scatter(roundminlim, rawvalues, marker='o', color='red')
-        ax.scatter(roundmaxlim, rawvalues, marker='o', color='green')
+        ax.scatter(roundmaxlim, rawvalues, marker='x', color='green')
 
         ax.set(xlabel='Physical Value', ylabel='Raw Value', title=signalname)
         ax.grid()

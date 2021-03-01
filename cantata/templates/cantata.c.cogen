@@ -597,7 +597,7 @@ for signame, sig in signals.items():
         val = %ssig_%s.min;
     }
 
-    %ssig_%s.setRaw(((val-%ssig_%s.offset)/%ssig_%s.factor)+0.5);"""
+    %ssig_%s.setRaw((val-%ssig_%s.offset)/%ssig_%s.factor);"""
         % (
             prefix, signame,
             prefix, signame,
