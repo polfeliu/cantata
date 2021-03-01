@@ -13,3 +13,4 @@ wheel = "*"
 [packages]
 cogapp = "*"
 cantools = "*"
+matplotlib = "*"

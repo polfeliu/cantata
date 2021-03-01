@@ -5,6 +5,9 @@ import re
 import sys
 import warnings
 
+import matplotlib
+import matplotlib.pyplot as plt
+
 from cantools.database.can.attribute import Attribute
 
 codegen = cogapp.Cog()
@@ -299,27 +302,32 @@ class Cantata:
                     self.db.messages[msgi].signals[sigi].maximum= max
                     self.db.messages[msgi].signals[sigi].minimum = min
 
-    def checkMinMax(self, signal):
-        #get rawvalue min and max
+    def getRawMinMax(self, is_float, length, is_signed):
         rawmin = 0
         rawmax = 0
-        if signal.is_float:
-            if signal.length==64:
+        if is_float:
+            if length==64:
                 #double
                 rawmin = -1.7e+308
                 rawmax = 1.7e+308
-            elif signal.length==32:
+            elif length==32:
                 #single
                 rawmin = -3.4e+38
                 rawmax = 3.4e+38
-        elif not signal.is_signed:
+        elif not is_signed:
             #unsigned
             rawmin = 0
-            rawmax = 2**signal.length -1
+            rawmax = 2**length -1
         else:
             #signed
-            rawmin = -2 ** (signal.length - 1)
-            rawmax = 2**(signal.length-1) -1
+            rawmin = -2 ** (length - 1)
+            rawmax = 2**(length-1) -1
+
+        return rawmin, rawmax
+
+    def checkMinMax(self, signal):
+        #get rawvalue min and max
+        rawmin,rawmax = self.getRawMinMax(signal.is_float, signal.length, signal.is_signed)
 
         phylim1 = rawmin * signal.scale + signal.offset
         phylim2 = rawmax * signal.scale + signal.offset
@@ -534,6 +542,7 @@ calculated maximum: %s
         sig['min'] = signal.minimum
         sig['max'] = signal.maximum
 
+        sig['is_signed'] = signal.is_signed
         signaltype = 0
 
         if signal.is_float:
@@ -651,6 +660,61 @@ calculated maximum: %s
         if hdr:
             shutil.copyfile(p+hdrfilename, hdr+hdrfilename)
 
+    def plotSignalConversion(self, signalname):
+        from pprint import pprint
+        if signalname not in self.signals:
+            warnings.warn("Signal %s doesn't exist".format(signalname))
+
+        pprint(self.signals['AccelerationForce'])
+        min = self.signals[signalname]['min']
+        max = self.signals[signalname]['max']
+        factor = self.signals[signalname]['factor']
+        offset = self.signals[signalname]['offset']
+        length = self.signals[signalname]['length']
+        is_signed = self.signals[signalname]['is_signed']
+        value_type = self.signals[signalname]['value_type']
+
+
+        if value_type == "single" or value_type == "double":
+            warnings.warn("Cannot plot signal of type single or double")
+            return False
+
+        rawmin, rawmax = self.getRawMinMax(False, length, is_signed)
+        print(min, max, factor, offset, rawmin, rawmax)
+
+        def conversion(phy):
+            return (phy-offset)/factor
+
+        def invconversion(raw):
+            return raw*factor+offset
+
+        rawvalues = list(range(rawmin,rawmax))
+        physicalvalues = list(map(invconversion,rawvalues))
+
+        roundminlimraw = list(map(lambda x:x-0.5, rawvalues))
+        roundminlim = list(map(invconversion, roundminlimraw))
+
+        roundmaxlimraw = list(map(lambda x:x+0.5, rawvalues))
+        roundmaxlim = list(map(invconversion, roundmaxlimraw))
+
+        fig, ax = plt.subplots()
+
+        for i in range(len(rawvalues)):
+            plt.plot(
+                [roundminlim[i], roundmaxlim[i]],#X
+                [rawvalues[i], rawvalues[i]],#Y
+                color='black'
+            )
+
+        ax.scatter(physicalvalues, rawvalues, marker='o', color='black')
+        ax.scatter(roundminlim, rawvalues, marker='o', color='red')
+        ax.scatter(roundmaxlim, rawvalues, marker='o', color='green')
+
+        ax.set(xlabel='Physical Value', ylabel='Raw Value', title=signalname)
+        ax.grid()
+        plt.show()
+
+
 if __name__ == '__main__':
 
     can = Cantata("CAN1")
@@ -662,6 +726,7 @@ if __name__ == '__main__':
 
     can.correctMinsMax()
     can.process(node="Engine")
+    can.plotSignalConversion("EngTemp")
     #can.process()
 
     can.genFiles(src=src, hdr=hdr)

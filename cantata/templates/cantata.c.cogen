@@ -553,7 +553,7 @@ struct %ssig_%s_t %ssig_%s = {
 //[[[end]]]
 
 /*
- * Signals: Signal getValue and setValue private methods
+ * Signals: Signal getValue and setValue "private" methods
  */
 /*[[[cog
 import cog
@@ -597,7 +597,7 @@ for signame, sig in signals.items():
         val = %ssig_%s.min;
     }
 
-    %ssig_%s.setRaw((val-%ssig_%s.offset)/%ssig_%s.factor);"""
+    %ssig_%s.setRaw(((val-%ssig_%s.offset)/%ssig_%s.factor)+0.5);"""
         % (
             prefix, signame,
             prefix, signame,
