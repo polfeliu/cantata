@@ -24,8 +24,8 @@ When creating the _cantata_ object a prefix must be passed, that will give the s
 This is important for ECU's that are connected to multiple buses, specially if objects in the databases share names.  
 
 ```python
-from cantata import cantata
-can = cantata("CAN1") # create the object setting the prefix that will be used in all objects.
+from cantata import Cantata
+can = Cantata("CAN1") # create the object setting the prefix that will be used in all objects.
 #Handy if you have several networks
 
 can.load('./test/CAN1.dbc')# Import database
