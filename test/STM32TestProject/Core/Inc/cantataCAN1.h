@@ -164,6 +164,7 @@ struct CAN1sig_SingleExample2_t CAN1sig_SingleExample2;
 struct CAN1sig_CarSpeed_t CAN1sig_CarSpeed;
 struct CAN1sig_GearLock_t CAN1sig_GearLock;
 struct CAN1sig_Diagnostics_t CAN1sig_Diagnostics;
+struct CAN1sig_SignalExampleToPlot_t CAN1sig_SignalExampleToPlot;
 struct CAN1sig_AccelerationForce_t CAN1sig_AccelerationForce;
 struct CAN1sig_ExSignal7_t CAN1sig_ExSignal7;
 struct CAN1sig_ExSignal8_t CAN1sig_ExSignal8;
@@ -317,6 +318,23 @@ struct CAN1sig_Diagnostics_t{
     uint8_t (*const getValue)(void);
     bool (*const setValue)(uint8_t);
     void (*const setRaw)(uint8_t);
+    bool sent;
+};
+
+struct CAN1sig_SignalExampleToPlot_t{
+    const uint8_t length;
+    const CANbyteorder_t byte_order;
+    const CANvaluetype_t value_type;
+    const char unit[0];
+    const double initial_value ;
+    const double factor ;
+    const double offset ;
+    const double min ;
+    const double max ;
+    int8_t raw;
+    double (*const getValue)(void);
+    bool (*const setValue)(double);
+    void (*const setRaw)(int8_t);
     bool sent;
 };
 
@@ -747,6 +765,10 @@ struct CAN1_ABSdata_t{
             uint64_t pad1: 16;
             uint64_t sig: 8;
         }CAN1sig_Diagnostics;
+        struct __attribute__((__packed__)) CAN1_ABSdataraw_SignalExampleToPlot_s{
+            uint64_t pad1: 24;
+            uint64_t sig: 3;
+        }CAN1sig_SignalExampleToPlot;
         struct __attribute__((__packed__)) CAN1_ABSdataraw_AccelerationForce_s{
             uint64_t pad1: 32;
             uint64_t sig: 16;

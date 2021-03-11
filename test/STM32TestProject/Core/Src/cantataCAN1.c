@@ -453,6 +453,9 @@ static void CAN1sig_GearLock_setRaw(bool);
 static uint8_t CAN1sig_Diagnostics_getValue();
 static bool CAN1sig_Diagnostics_setValue(uint8_t);
 static void CAN1sig_Diagnostics_setRaw(uint8_t);
+static double CAN1sig_SignalExampleToPlot_getValue();
+static bool CAN1sig_SignalExampleToPlot_setValue(double);
+static void CAN1sig_SignalExampleToPlot_setRaw(int8_t);
 static double CAN1sig_AccelerationForce_getValue();
 static bool CAN1sig_AccelerationForce_setValue(double);
 static void CAN1sig_AccelerationForce_setRaw(uint16_t);
@@ -640,6 +643,23 @@ struct CAN1sig_Diagnostics_t CAN1sig_Diagnostics = {
     .getValue = CAN1sig_Diagnostics_getValue,
     .setValue = CAN1sig_Diagnostics_setValue,
     .setRaw = CAN1sig_Diagnostics_setRaw,
+    .sent = true
+};
+    
+struct CAN1sig_SignalExampleToPlot_t CAN1sig_SignalExampleToPlot = {
+    .length = 3,
+    .byte_order = little_endian,
+    .value_type = Tint8_t,
+    .unit = "",
+    .initial_value = 0.0,
+    .factor = 0.4,
+    .offset = 0.0,
+    .min = -1.6,
+    .max = 1.2000000000000002,
+    .raw = 0,
+    .getValue = CAN1sig_SignalExampleToPlot_getValue,
+    .setValue = CAN1sig_SignalExampleToPlot_setValue,
+    .setRaw = CAN1sig_SignalExampleToPlot_setRaw,
     .sent = true
 };
     
@@ -1091,6 +1111,27 @@ static void CAN1sig_Diagnostics_setRaw(uint8_t raw){
     CAN1sig_Diagnostics.raw = raw;
 }
 
+// SignalExampleToPlot
+static double CAN1sig_SignalExampleToPlot_getValue(){
+     return ((double) CAN1sig_SignalExampleToPlot.raw) * CAN1sig_SignalExampleToPlot.factor + CAN1sig_SignalExampleToPlot.offset;
+}
+static bool CAN1sig_SignalExampleToPlot_setValue(double val){
+    bool saturation = false;
+    if(val > CAN1sig_SignalExampleToPlot.max){
+        saturation = true;
+        val = CAN1sig_SignalExampleToPlot.max;
+    }else if(val < CAN1sig_SignalExampleToPlot.min){
+        saturation = true;
+        val = CAN1sig_SignalExampleToPlot.min;
+    }
+
+    CAN1sig_SignalExampleToPlot.setRaw((val-CAN1sig_SignalExampleToPlot.offset)/CAN1sig_SignalExampleToPlot.factor);
+    return !saturation;
+}
+static void CAN1sig_SignalExampleToPlot_setRaw(int8_t raw){
+    CAN1sig_SignalExampleToPlot.raw = raw;
+}
+
 // AccelerationForce
 static double CAN1sig_AccelerationForce_getValue(){
      return ((double) CAN1sig_AccelerationForce.raw) * CAN1sig_AccelerationForce.factor + CAN1sig_AccelerationForce.offset;
@@ -1449,6 +1490,8 @@ static void CAN1_ABSdata_send(){
     CAN1sig_GearLock.sent = true;
     CAN1_ABSdata.raw.CAN1sig_Diagnostics.sig = CAN1sig_Diagnostics.raw;
     CAN1sig_Diagnostics.sent = true;
+    CAN1_ABSdata.raw.CAN1sig_SignalExampleToPlot.sig = CAN1sig_SignalExampleToPlot.raw;
+    CAN1sig_SignalExampleToPlot.sent = true;
     CAN1_ABSdata.raw.CAN1sig_AccelerationForce.sig = CAN1sig_AccelerationForce.raw;
     CAN1sig_AccelerationForce.sent = true;
     portEXIT_CRITICAL();
