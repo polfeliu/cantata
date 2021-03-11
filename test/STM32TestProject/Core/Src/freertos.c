@@ -171,7 +171,7 @@ void StartDefaultTask(void *argument)
   {
 
     vTaskDelay(pdMS_TO_TICKS(100));
-
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     button_last = button;
     button = HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);
 

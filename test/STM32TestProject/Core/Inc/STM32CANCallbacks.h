@@ -7,6 +7,11 @@
 #include "main.h"
 #include "stdbool.h"
 
+#define vTaskInteractionLayer_CAN1_EngineStatus_Stack_Depth 800
+#define vTaskInteractionLayer_CAN1_EngineData_Stack_Depth 600
+#define vTaskInteractionLayer_CAN1_EngineData_fastDelayedResume_Stack_Depth 600
+#define vTaskInteractionLayer_CAN1_OnWriteOnChange_Stack_Depth 600
+
 
 void CAN1_SendCallback(uint8_t data[], uint8_t DLC, uint32_t ID, bool is_extended /*, bool FDF, bool BRS*/);
 void InitCAN1(CAN_HandleTypeDef *canh);

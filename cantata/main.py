@@ -661,11 +661,9 @@ calculated maximum: %s
             shutil.copyfile(p+hdrfilename, hdr+hdrfilename)
 
     def plotSignalConversion(self, signalname):
-        from pprint import pprint
         if signalname not in self.signals:
             warnings.warn("Signal %s doesn't exist".format(signalname))
 
-        pprint(self.signals['AccelerationForce'])
         min = self.signals[signalname]['min']
         max = self.signals[signalname]['max']
         factor = self.signals[signalname]['factor']
@@ -680,7 +678,6 @@ calculated maximum: %s
             return False
 
         rawmin, rawmax = self.getRawMinMax(False, length, is_signed)
-        print(min, max, factor, offset, rawmin, rawmax)
 
         def conversion(phy):
             return (phy-offset)/factor
@@ -704,24 +701,24 @@ calculated maximum: %s
 
         fig, ax = plt.subplots()
 
+        plt.plot(
+            [phymax, phymax + phyrange * 0.5],
+            [rawmax, rawmax],
+            color='blue'
+        )
+
+        plt.plot(
+            [phymin, phymin - phyrange * 0.5],
+            [rawmin, rawmin],
+            color='blue'
+        )
+
         for i in range(len(rawvalues)):
             plt.plot(
                 [physicalvalues[i], roundmaxlim[i]],#X
                 [rawvalues[i], rawvalues[i]],#Y
                 color='black'
             )
-
-        plt.plot(
-            [phymax, phymax + phyrange*0.5],
-            [rawmax, rawmax],
-            color='black'
-        )
-
-        plt.plot(
-            [phymin, phymin - phyrange*0.5],
-            [rawmin, rawmin],
-            color='black'
-        )
 
         ax.scatter(physicalvalues, rawvalues, marker='o', color='black')
         ax.scatter(roundmaxlim, rawvalues, marker='x', color='green')
@@ -742,9 +739,7 @@ if __name__ == '__main__':
 
     can.correctMinsMax()
     can.process(node="Engine")
-    can.plotSignalConversion("EngTemp")
+    can.plotSignalConversion("SignalExampleToPlot")
     #can.process()
 
     can.genFiles(src=src, hdr=hdr)
-    shutil.copyfile(r'../callbacks/STM32CANCallbacks.c', src + r'STM32CANCallbacks.c')
-    shutil.copyfile(r'../callbacks/STM32CANCallbacks.h', hdr + r'STM32CANCallbacks.h')

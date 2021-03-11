@@ -351,3 +351,13 @@ To guarantee atomicity and consistency of the signals and messages when using Fr
 Warning! portEnter_CRITICAL() and portEXIT_CRITICAL() cannot be called from an ISR. If the CAN_ReceiveCallback is directly called from the CAN interrupt and _FreeRTOSCriticalSections_ is activated the program will crash. Please use deferred interrupt processing on the callbacks to avoid this. On the STM32CANCallbacks there is an example on how to do this with Queues.
 
 Note that methods for signals **don't** have these statements. So you will have to take care of that for signals that are longer than the bit-width of the MCU architecture you are using.
+
+
+## Plot Signal Conversion
+The Library also allows to create matplotlib plots of the signal conversion that will take place with `getValue()` and `setValue methods`.
+```python
+can.plotSignalConversion("SignalExampleToPlot")
+```
+![alt text](plotSignalConversion.png)
+
+The signal must be processed. So if the node parameter is passed to the process function the signal to be ploted must be a TX or RX signal.
