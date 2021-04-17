@@ -10,7 +10,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="python-cantata",  # Required
-    version="1.2.0",  # Required
+    version="1.3.1",  # Required
     description="Python Tool to generate C structures and functions to access candb information",  # Optional
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",  # Optional

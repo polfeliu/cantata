@@ -84,7 +84,7 @@ In the STM32CANCallbacks.c files there is an initialization of the CAN that incl
 ## Structure
 The library generates cantataCAN1.c and cantataCAN1.h files with structures and functions for the following objects.
 
-![alt text](diagram.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/diagram.png)
 
 ### Signals
 The signal structure contains basic information of the signal provided by the database:
@@ -280,19 +280,19 @@ The test project with STM32 in this repository has examples of how the interacti
 Cyclic messages must be defined as so on the message attribute (GenMsgSendType) and signals of messages can have another GenSigSendType to have additional behaviour. Note that each message may contain several signals with different parameters and thus message may be sent more times than what is expected from one signals perspective.
 
 The architecture that is generated for a database can be represented with the following diagram:
-![alt text](InteractionLayerDiagram.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/InteractionLayerDiagram.png)
 
 ### Cyclic
 Messages with attribute _GenMsgSendType = Cyclic_ are grouped by cyclic times and sent with the period set at _GenMsgCycleTime_ attribute
 
-![alt text](test/Screenshots/Cyclic.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/Cyclic.png)
 
 Message is sent no matter the state of the button
 ### On Change
 Signals with attribute _GenSigSendType = OnChange_ send the messages they are assigned to whenever the raw value of the signal changes with .setValue() or .setRaw().
 Note that .setValue() computes factor and offset, and rounds off to integers. If the calculated raw value of the signal doesn't change the signal is not sent 
 
-![alt text](test/Screenshots/OnChange.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/OnChange.png)
 
 Example: The state of the button is set to the signal constantly (at 50ms) and if the value changes the message is sent
 ```
@@ -302,13 +302,13 @@ CAN1sig_IdleRunning.setValue(button);
 ### On Change With Repetitions
 Signals with attribute _GenSigSendType = OnChangeWithRepetition_ send the messages similary as _OnChange_ but, after the value is changed (and sent) the signal is sent N times more at a fast rate, thus the message is sent N+1 times.
 This fast rate is defined in the message attribute _GenMsgCycleTimeFast_ and number of times the message is sent is set with _GenMsgNrOfRepetition_.    
-![alt text](test/Screenshots/OnChangeWithRepetitions.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/OnChangeWithRepetitions.png)
 
 Example: Same as before
 
 ### On Write
 Signals with attribute _GenSigSendType = OnWrite_ send the messages whenever the function .setValue() or .setRaw() are called, no matter if the value is set is the same.
-![alt text](test/Screenshots/OnWrite.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/OnWrite.png)
 
 Example: Every time the button changes state the application writes the same value to the signal
 ```c
@@ -320,13 +320,13 @@ if(button != button_last){
 ### On Write With Repetitions
 Signals with attribute _GenSigSendType = OnWriteWithRepetition_ send the messages similarly as _OnWrite_ and after the message is sent the fast time for the repetitions is activated as described on **On Change With Repetitions**
  
-![alt text](test/Screenshots/OnWriteWithRepetitions.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/OnWriteWithRepetitions.png)
 
 Example: Same as before
 
 ### If Active
 Signals with attribute _GenSigSendType = IfActive_ send the message whenever the signal has a value different than the set in the _GenSigInactiveValue_ attribute
-![alt text](test/Screenshots/IfActive.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/IfActive.png)
 
 Example: If the button is not pressed the signal is put in inactive value and thus is not sent. If not, an active value (1) is set to the signal.  
 ```c
@@ -339,7 +339,7 @@ if(button){
 
 ### If Active With Repetitions
 Signals with attribute _GenSigSendType = IfActiveWithRepetitions_ send the messages similarly as _IfActive_. Whenever the signal takes the value of _GenSigInactiveValue_ the signal is sent N times more as **On Change With Repetitions**
-![alt text](test/Screenshots/IfActiveWithRepetitions.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/test/Screenshots/IfActiveWithRepetitions.png)
 
 Example: Same as before
 
@@ -358,6 +358,6 @@ The Library also allows to create matplotlib plots of the signal conversion that
 ```python
 can.plotSignalConversion("SignalExampleToPlot")
 ```
-![alt text](plotSignalConversion.png)
+![alt text](https://github.com/polfeliu/cantata/raw/main/plotSignalConversion.png)
 
 The signal must be processed. So if the node parameter is passed to the process function the signal to be ploted must be a TX or RX signal.
